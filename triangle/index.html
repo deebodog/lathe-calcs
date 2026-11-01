@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Adam's Right-Angle Triangle Calculator</title>
+<style>body{font-family:system-ui,sans-serif;margin:0;padding:12px;background:#f3f5f8;color:#222;max-width:560px;margin:auto}h1{font-size:1.3em}
+.g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}label{min-width:0;font-size:.9em;display:flex;flex-direction:column}
+input,select{width:100%;box-sizing:border-box}input,select,button{font-size:1.1em;padding:10px;border:1px solid #aab;border-radius:8px}input.calc{background:#e6f4ea}
+button{background:#1565c0;color:#fff;border:0;margin-top:10px;width:48%}#clr{background:#777}#err{color:#c62828;font-weight:bold;min-height:1.2em}
+svg{width:100%;background:#fff;border-radius:8px;margin-top:10px}#res{background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-family:monospace}</style><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1565c0"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
+<header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1 style="margin:0;font-size:1.2em">Adam's Right-Angle Triangle Calculator</h1><div style="font-size:.8em;color:#555">Leicester, England</div></div></header>
+<label>Units <select id="u"><option>mm</option><option value="in">inch</option></select></label>
+<p style="font-size:.85em">Enter any two values (at least one side).</p>
+<div class="g"><label>Side a (opposite A)<input id="a" type="number" inputmode="decimal" step="any"></label>
+<label>Side b (adjacent A)<input id="b" type="number" inputmode="decimal" step="any"></label>
+<label>Hypotenuse c<input id="c" type="number" inputmode="decimal" step="any"></label><span></span>
+<label>Angle A (°)<input id="A" type="number" inputmode="decimal" step="any"></label>
+<label>Angle B (°)<input id="B" type="number" inputmode="decimal" step="any"></label></div>
+<button id="go">Calculate</button> <button id="clr">Clear</button>
+<div id="err"></div><div id="res"></div>
+<svg id="svg" viewBox="0 0 320 240"></svg>
+<script>function solve(i){const D=Math.PI/180;let {a,b,c,A,B}=i;const n=[a,b,c,A,B].filter(v=>v!=null).length;
+if(n!==2)throw"Enter exactly two values";if(a==null&&b==null&&c==null)throw"At least one side is required";
+for(const v of [a,b,c])if(v!=null&&!(v>0))throw"Sides must be positive";
+for(const v of [A,B])if(v!=null&&!(v>0&&v<90))throw"Angles must be between 0 and 90°";
+if(A!=null&&B!=null)throw"Two angles is not enough";
+if(B!=null)A=90-B;
+if(a!=null&&b!=null){c=Math.hypot(a,b);}
+else if(a!=null&&c!=null){if(c<=a)throw"Hypotenuse must be longest side";b=Math.sqrt(c*c-a*a);}
+else if(b!=null&&c!=null){if(c<=b)throw"Hypotenuse must be longest side";a=Math.sqrt(c*c-b*b);}
+else if(a!=null){c=a/Math.sin(A*D);b=a/Math.tan(A*D);}
+else if(b!=null){a=b*Math.tan(A*D);c=b/Math.cos(A*D);}
+else {a=c*Math.sin(A*D);b=c*Math.cos(A*D);}
+A=Math.atan2(a,b)/D;B=90-A;return{a,b,c,A,B,area:a*b/2,perimeter:a+b+c};}
+if(typeof module!=="undefined")module.exports=solve;
+
+const K=["a","b","c","A","B"],$=id=>document.getElementById(id),F=v=>v.toFixed(4);
+function draw(r){const u=$("u").value;let W=240,H=160,s=Math.min(W/r.b,H/r.a);const w=r.b*s,h=r.a*s,x0=50,y0=200;
+const P=`${x0},${y0} ${x0+w},${y0} ${x0+w},${y0-h}`;const L=(x,y,t,c)=>`<text x="${x}" y="${y}" font-size="12" fill="${c||'#000'}" text-anchor="middle">${t}</text>`;
+$("svg").innerHTML=`<polygon points="${P}" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/><rect x="${x0+w-12}" y="${y0-12}" width="12" height="12" fill="none" stroke="#000"/>`+
+(r?L(x0+w/2,y0+16,"b = "+F(r.b)+" "+u)+L(x0+w+8,y0-h/2,"a = "+F(r.a),"#000").replace('middle','start')+L(x0+w/2-20,y0-h/2-10,"c = "+F(r.c))+L(x0+22,y0-6,"A="+F(r.A)+"°","#c62828").replace('middle','start')+L(x0+w-6,y0-h-6,"B="+F(r.B)+"°","#c62828").replace('middle','end'):"");}
+function calc(){$("err").textContent="";const i={};K.forEach(k=>{const w=$(k).classList.contains("calc");$(k).classList.remove("calc");const v=$(k).value;if(w)$(k).value="";else if(v!=="")i[k]=parseFloat(v)});
+try{const r=solve(i),u=$("u").value;K.forEach(k=>{if(i[k]==null){$(k).value=F(r[k]);$(k).classList.add("calc")}});
+$("res").innerHTML=`a = ${F(r.a)} ${u}<br>b = ${F(r.b)} ${u}<br>c = ${F(r.c)} ${u}<br>A = ${F(r.A)}°<br>B = ${F(r.B)}°<br>Area = ${F(r.area)} ${u}²<br>Perimeter = ${F(r.perimeter)} ${u}`;draw(r)}
+catch(e){$("err").textContent=e;$("res").innerHTML=""}}
+$("go").onclick=calc;$("clr").onclick=()=>{K.forEach(k=>{$(k).value="";$(k).classList.remove("calc")});$("err").textContent="";$("res").innerHTML="";draw({a:3,b:4,c:5,A:0,B:0,x:1});$("svg").querySelectorAll("text").forEach(t=>t.remove())};
+K.forEach(k=>$(k).addEventListener("input",()=>$(k).classList.remove("calc")));$("u").onchange=()=>{if($("res").innerHTML)calc()};
+$("clr").onclick();
+</script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script></body></html>

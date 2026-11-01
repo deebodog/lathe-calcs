@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Adam's Spherical Radius Calculator</title>
+<style>*{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;padding:12px;background:#f3f5f8;color:#222;max-width:560px;margin:auto}h1{font-size:1.3em}
+.g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}label{min-width:0;font-size:.9em;display:flex;flex-direction:column}
+input,select{width:100%}input,select,button{max-width:100%;min-width:0;font-size:1.1em;padding:10px;border:1px solid #aab;border-radius:8px}
+button{background:#1565c0;color:#fff;border:0;margin-top:10px;width:48%}#clr{background:#777}#err{color:#c62828;font-weight:bold;min-height:1.2em}
+svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}#res{background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-family:monospace}.w{color:#c62828;font-family:system-ui;font-size:.85em}pre{font-size:1.15em;background:#eef;padding:6px;border-radius:6px}</style><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1565c0"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
+<header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1 style="margin:0;font-size:1.2em">Adam's Spherical Radius Calculator</h1><div style="font-size:.8em;color:#555">Leicester, England</div></div></header>
+<div class="g"><label>Type <select id="shape"><option value="bore" selected>Bore (internal sphere)</option><option value="convex">Convex OD (barrel)</option><option value="groove">Concave OD groove</option></select></label>
+<label>Units <select id="u"><option>mm</option><option value="in">inch</option></select></label>
+<label>Enter sphere as <select id="srt"><option value="r">Radius SR</option><option value="d">Diameter SØ</option></select></label>
+<label id="srl"><span>Spherical radius SR</span><input id="sr" type="number" inputmode="decimal" step="any"></label>
+<label id="dl"><span>Bore diameter D</span><input id="d" type="number" inputmode="decimal" step="any"></label>
+<label>Part length L<input id="L" type="number" inputmode="decimal" step="any"></label>
+<label id="wl" style="display:none">Groove width w (along Z)<input id="w" type="number" inputmode="decimal" step="any"></label>
+<label>X start Ø (blank = D)<span style="display:flex;gap:4px"><button type="button" id="xm" style="width:auto;margin:0;padding:8px 12px">−</button><input id="xs" type="number" inputmode="decimal" step="0.1"><button type="button" id="xp" style="width:auto;margin:0;padding:8px 12px">+</button></span></label>
+<label>Centre Z (blank = L/2, ± ok)<input id="zc" type="number" inputmode="decimal" step="any"></label></div>
+<p style="font-size:.85em">Z0 = part front face. X = diameter. Sphere centre on the centreline at mid-length unless overridden.</p>
+<button id="go">Calculate</button> <button id="clr">Clear</button>
+<div id="err"></div><div id="res"></div>
+<svg id="svg" viewBox="0 0 320 290"></svg>
+<script>
+const X=v=>{const s=(+v.toFixed(3)).toString();return s.includes(".")?s:s+"."},Z3=v=>(Math.abs(v)<5e-4?0:v).toFixed(3);
+function core(i){let {SR,D,L,zc,w,shape}=i;shape=shape||"convex";
+if(!(SR>0))throw"SR must be positive";if(!(D>0))throw"Diameter D must be positive";if(!(L>0))throw"Part length L must be positive";
+if(zc==null||isNaN(zc))zc=-L/2;else zc=-Math.abs(zc);let c,r={SR,D,L,zc,shape};
+if(shape==="groove"){if(!(w>0))throw"Groove width w must be positive";if(SR<w/2-1e-12)throw"SR must be at least w/2 ("+w/2+")";
+ c=w/2;const k=Math.sqrt(Math.max(0,SR*SR-c*c));r.depth=SR-k;r.extDia=D-2*r.depth;if(r.extDia<0)throw"Groove deeper than the part radius";r.cmd="G02";}
+else{if(SR<D/2-1e-12)throw"SR must be at least D/2 ("+D/2+") – sphere doesn't reach the "+(shape==="bore"?"bore":"OD");
+ c=Math.sqrt(Math.max(0,SR*SR-D*D/4));r.depth=SR-D/2;r.extDia=2*SR;r.cmd="G03";}
+r.c=c;r.zs=zc+c;r.ze=zc-c;r.lenZ=2*c;r.arc=2*SR*Math.asin(Math.min(1,c/SR));
+if(r.zs>1e-9||r.ze<-L-1e-9)throw`Arc runs off the part: Z${Z3(r.zs)} to Z${Z3(r.ze)} not within Z0 to Z-${X(L)}`;
+r.prog=`G01 X${X(D)} Z${Z3(r.zs)}\n${r.cmd} X${X(D)} Z${Z3(r.ze)} R${X(SR)}`;return r;}
+function solve(i){const D=i.D;let xs=i.xs;if(xs==null||isNaN(xs))xs=D;if(!(xs>0))throw"X start must be positive";
+const fin=core(i),off=Math.abs(xs-D)>1e-9;if(!off){fin.xs=xs;fin.off=false;fin.warn="";return fin;}
+let r;try{r=core({...i,D:xs});}catch(e){throw"At X start "+X(xs)+": "+e;}
+r.xs=xs;r.D=D;r.off=true;r.fzs=fin.zs;r.fze=fin.ze;r.warn="";
+if(i.shape==="bore"?xs>D+1e-9:xs<D-1e-9)r.warn="X start "+X(xs)+(i.shape==="bore"?" is larger than the bore":" is smaller than the OD")+" Ø"+X(D)+" – this pass cuts INTO the finished profile.";
+return r;}
+if(typeof module!=="undefined")module.exports={solve};
+else{
+const $=id=>document.getElementById(id),F=v=>v.toFixed(3);
+function draw(r){if(!r){$("svg").innerHTML="";return}
+const W=320,x0=290,x1=40,cy=225,sc=(x0-x1)/r.L,px=z=>x0+z*sc,R0=r.D/2,
+rc=r.shape==="groove"?R0+Math.sqrt(r.SR*r.SR-r.c*r.c):0,
+tr=z=>{if(z>r.zs||z<r.ze)return R0;const q=Math.sqrt(Math.max(0,r.SR*r.SR-(z-r.zc)**2));return r.shape==="groove"?rc-q:q;},
+ys=125/(Math.max(R0,r.extDia/2)),bulgePx=Math.abs(r.depth)*ys,k=bulgePx<14?14/bulgePx:1,
+dr=z=>R0+(tr(z)-R0)*k,py=rad=>cy-(rad>=0?rad:0)*ys,
+T=(x,y,t,c,a)=>`<text x="${x}" y="${y}" font-size="11" fill="${c||'#000'}" text-anchor="${a||'middle'}">${t}</text>`;
+let pts=[];for(let i=0;i<=120;i++){const z=-r.L*i/120;pts.push([px(z),py(dr(z))]);}
+[r.zs,r.ze,r.zc].forEach(z=>pts.push([px(z),py(dr(z))]));pts.sort((a,b)=>b[0]-a[0]);
+const prof=pts.map(p=>p[0].toFixed(2)+" "+p[1].toFixed(2)).join(" L"),yb=py(R0),ypk=py(dr(r.zc));
+let s=`<line x1="5" y1="${cy}" x2="${W-5}" y2="${cy}" stroke="#888" stroke-dasharray="8 3"/>`+T(8,cy-4,"centreline","#888","start");
+if(r.shape==="bore"){const top=Math.min(ypk,yb)-35;
+ s+=`<path d="M${prof} L${px(-r.L)} ${top} L${px(0)} ${top}Z" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>`+T(px(-r.L*0.82),top+16,"wall","#1565c0")+
+ `<rect x="${px(-r.L)}" y="${yb}" width="${r.L*sc}" height="${cy-yb}" fill="#fafafa" stroke="#bbb" stroke-dasharray="3"/>`+T(px(-r.L/2),yb+(cy-yb)*0.65,"bore Ø"+X(r.D)+" (hole)","#777");}
+else{s+=`<path d="M${px(0)} ${cy} L${prof} L${px(-r.L)} ${cy}Z" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>`+T(px(-r.L/2),yb+(cy-yb)*0.65,"part Ø"+X(r.D),"#1565c0");}
+s+=`<line x1="${px(r.zc)}" y1="${cy}" x2="${px(r.zc)}" y2="${ypk}" stroke="#c62828"/><circle cx="${px(r.zc)}" cy="${cy}" r="3.5" fill="#c62828"/>`+T(px(r.zc)+4,(cy+ypk)/2-8,"SR"+X(r.SR),"#c62828","start");
+s+=`<line x1="${px(0)}" y1="12" x2="${px(0)}" y2="${cy+30}" stroke="#c62828" stroke-dasharray="4"/>`+T(px(0),10,"Z0","#c62828","end");
+[[r.zs,cy+13],[r.ze,cy+26]].forEach(([z,y])=>{s+=`<line x1="${px(z)}" y1="${py(dr(z))}" x2="${px(z)}" y2="${y-9}" stroke="#2e7d32" stroke-dasharray="2"/>`+T(px(z),y,"Z"+F(z),"#2e7d32")});
+s+=T(px(-r.L),cy+40,"L="+X(r.L),"#555","end").replace('text-anchor="end"','text-anchor="start"').replace(`x="${px(-r.L)}"`,'x="4"');
+s+=T(px(r.zc),(r.shape==="groove"?ypk+14:ypk-6)+(r.shape==="bore"?0:0),(r.shape==="groove"?"bottom Ø":"peak Ø")+X(r.extDia),"#0d47a1").replace('font-size="11"','font-size="11" font-weight="bold"');
+s+=T(W/2,cy+40,"← chuck   "+({convex:"CONVEX OD",groove:"CONCAVE GROOVE",bore:"BORE"})[r.shape],"#555")+(k>1?T(W/2,cy+54,"bulge not to scale","#c62828"):"");
+$("svg").innerHTML=s;}
+function calc(){$("err").textContent="";const shape=$("shape").value,u=$("u").value,p=k=>parseFloat($(k).value);
+let SR=p("sr");if($("srt").value==="d")SR/=2;
+try{const r=solve({xs:$("xs").value===""?null:p("xs"),SR,D:p("d"),L:p("L"),w:p("w"),zc:$("zc").value===""?null:p("zc"),shape});
+$("res").innerHTML=`<pre>${r.prog}</pre>`+(r.warn?`<div id="err">⚠ ${r.warn}</div>`:"")+(r.off?`<span style="font-size:.85em;font-family:system-ui">X start: arc is calculated at this diameter with the same SR and centre.</span><br>`:"")+`Using: SR ${X(r.SR)}, ${shape==="bore"?"bore":"OD"} Ø${X(r.D)}, centre Z${F(r.zc)}, L ${X(r.L)}, X start ${X(r.xs)}<br>Z start = ${F(r.zs)}<br>Z end = ${F(r.ze)}<br>${r.off?`(finished Ø${X(r.D)} arc: Z${F(r.fzs)} to Z${F(r.fze)})<br>`:""}Arc length along Z = ${F(r.lenZ)} ${u}<br>True arc length = ${F(r.arc)} ${u}<br>`+
+(shape==="groove"?`Groove depth (radial) = ${F(r.depth)} ${u}<br>Bottom diameter = ${F(r.extDia)} ${u}<br>`:`${shape==="bore"?"Max pocket":"Peak"} diameter = ${F(r.extDia)} ${u} (at Z${F(r.zc)})<br>${shape==="bore"?"Pocket depth":"Bulge"} (radial) = ${F(r.depth)} ${u}<br>`)+
+`SR = ${F(r.SR)} (SØ ${F(2*r.SR)})<br><span class="w">⚠ VERIFY IN SIMULATION: ${r.cmd} assumes Fanuc, rear-type turret (X+ up), tool cutting toward the chuck, Z0 on front face. Front turret / opposite tool side / reversed path flips G02↔G03. No tool nose comp shown.</span>`;draw(r.off?{...r,D:r.xs}:r)}
+catch(e){$("err").textContent=e;$("res").innerHTML="";draw(null)}}
+$("shape").onchange=()=>{const s=$("shape").value;$("wl").style.display=s==="groove"?"":"none";$("dl").firstChild.textContent=s==="bore"?"Bore diameter D":"Outer diameter D";if($("res").innerHTML)calc()};
+$("srt").onchange=()=>{$("srl").firstChild.textContent=$("srt").value==="d"?"Spherical diameter SØ":"Spherical radius SR"};
+$("go").onclick=calc;const st=()=>$("u").value==="in"?0.001:0.1;const bump=d=>{let v=$("xs").value===""?parseFloat($("d").value)||0:parseFloat($("xs").value);v=+(v+d*st()).toFixed(4);$("xs").value=v;calc()};$("xm").onclick=()=>bump(-1);$("xp").onclick=()=>bump(1);$("xs").oninput=()=>{if($("res").innerHTML)calc()};$("u").onchange=()=>{$("xs").step=st();if($("res").innerHTML)calc()};
+$("clr").onclick=()=>{["sr","d","L","w","zc","xs"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
+$("sr").value=40;$("d").value=78;$("L").value=20;calc();}
+</script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script></body></html>
