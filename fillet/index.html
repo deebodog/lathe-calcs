@@ -11,6 +11,7 @@ svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#ff
 <label id="srl"><span>Spherical radius R</span><input id="R" type="number" inputmode="decimal" step="any"></label>
 <label>Part width W<input id="W" type="number" inputmode="decimal" step="any"></label>
 <label>Fillet radius r<input id="r" type="number" inputmode="decimal" step="any"></label>
+<label>Arc direction <select id="ad"><option value="G02" selected>G02 (default)</option><option value="G03">G03</option></select></label>
 <label>Centre Z (blank = −W/2, ± ok)<input id="zc" type="number" inputmode="decimal" step="any"></label></div>
 <p style="font-size:.85em">Z0 = front face. X = diameter. Sphere centre on the centreline at mid-width; fillet r blends the sphere into each flat face.</p>
 <button id="go">Calculate</button> <button id="clr">Clear</button>
@@ -19,7 +20,7 @@ svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#ff
 <script>
 const X=v=>{const s=(+v.toFixed(3)).toString();return s.includes(".")?s:s+"."},Z3=v=>(Math.abs(v)<5e-4?0:v).toFixed(3);
 function dir(c,p,q){const cr=(p[0]-c[0])*(q[1]-c[1])-(p[1]-c[1])*(q[0]-c[0]);return cr>0?"G03":"G02";}
-function solve(i){let {R,W,r,zc,shape}=i;shape=shape||"bore";
+function solve(i){let {R,W,r,zc,shape,arc}=i;arc=arc==="G03"?"G03":"G02";shape=shape||"bore";
 if(!(R>0))throw"R must be positive";if(!(W>0))throw"Width W must be positive";if(!(r>0))throw"Fillet r must be positive";
 if(!(R>r))throw"R must be bigger than fillet r";const h=W/2;if(!(h>r))throw"W/2 ("+h+") must be bigger than fillet r";
 if(!(R-r>Math.abs(h-r)))throw"Impossible: R − r must exceed W/2 − r (sphere doesn't reach the faces)";
@@ -29,7 +30,7 @@ if(!(R>xc))throw"Sphere must exceed the face radial x";
 const zf1=zc+h,zf2=zc-h,warn=zf1>1e-9?"Front face is at Z"+Z3(zf1)+" (in front of Z0) – check centre Z.":"";
 // points in (Z, Xradius)
 const F1=[zf1,xc],S1=[zc+b,a],S2=[zc-b,a],F2=[zf2,xc],C1=[zc+yc,xc],C2=[zc-yc,xc],C0=[zc,0];
-const d1=dir(C1,F1,S1),d0=dir(C0,S1,S2),d2=dir(C2,S2,F2),D=p=>X(2*p[1]);
+const d1=arc,d0=arc,d2=arc,D=p=>X(2*p[1]);
 const prog=`G01 X${D(F1)} Z${Z3(F1[0])}\n${d1} X${D(S1)} Z${Z3(S1[0])} R${X(r)}\n${d0} X${D(S2)} Z${Z3(S2[0])} R${X(R)}\n${d2} X${D(F2)} Z${Z3(F2[0])} R${X(r)}`;
 return{R,W,r,zc,shape,h,xc,yc,m,a,b,k,F1,S1,S2,F2,C1,C2,C0,d1,d0,d2,prog,warn,peak:2*R};}
 if(typeof module!=="undefined")module.exports={solve};
@@ -49,15 +50,15 @@ s+=`<line x1="${px(q.zc)}" y1="${cy}" x2="${px(q.zc)}" y2="${py(q.R)}" stroke="#
 s+=`<line x1="${px(0)}" y1="8" x2="${px(0)}" y2="${cy+8}" stroke="#c62828" stroke-dasharray="4"/>`+T(px(0)+3,12,"Z0","#c62828","start")+T(160,cy+22,"← chuck   "+(q.shape==="bore"?"BORE":"CONVEX OD")+"   W="+X(q.W),"#555");
 $("svg").innerHTML=s;}
 function calc(){$("err").textContent="";const p=k=>parseFloat($(k).value),u=$("u").value;let R=p("R");if($("srt").value==="d")R/=2;
-try{const q=solve({R,W:p("W"),r:p("r"),zc:$("zc").value===""?null:p("zc"),shape:$("shape").value}),L=(n,pt)=>`${n}: X${F(2*pt[1])} Z${F(pt[0])}<br>`;
+try{const q=solve({R,W:p("W"),r:p("r"),zc:$("zc").value===""?null:p("zc"),shape:$("shape").value,arc:$("ad").value}),L=(n,pt)=>`${n}: X${F(2*pt[1])} Z${F(pt[0])}<br>`;
 $("res").innerHTML=`<pre>${q.prog}</pre>`+(q.warn?`<div id="err">⚠ ${q.warn}</div>`:"")+
 `<b>Lathe points (X = diameter)</b><br>`+L("F1 front face tangent",q.F1)+L("S1 sphere tangent",q.S1)+`Peak: X${F(q.peak)} Z${F(q.zc)}<br>`+L("S2 sphere tangent",q.S2)+L("F2 rear face tangent",q.F2)+
 `Fillet centres: X${F(2*q.C1[1])} Z${F(q.C1[0])} / X${F(2*q.C2[1])} Z${F(q.C2[0])}<br><br><b>Working (sphere centre = origin)</b><br>`+
 `1) y<sub>c</sub> = W/2 − r = ${F(q.h)} − ${F(q.r)} = ${F(q.yc)}<br>&nbsp;&nbsp; x<sub>c</sub> = √((R−r)² − y<sub>c</sub>²) = √(${F(q.R-q.r)}² − ${F(q.yc)}²) = ${F(q.xc)}<br>&nbsp;&nbsp; face point (x, y) = (${F(q.xc)}, ${F(q.h)})<br>`+
 `2) m = y<sub>c</sub>/x<sub>c</sub> = ${F(q.m)}<br>3) a = √(R²/(1+m²)) = ${F(q.a)}, b = m·a = ${F(q.b)}<br>&nbsp;&nbsp; sphere point (a, b) = (${F(q.a)}, ${F(q.b)})<br>`+
-`<span class="w">⚠ VERIFY IN SIMULATION: arc directions from the path geometry (signed cross product, Z right / X up, CCW = G03) – Fanuc rear-type turret, cutting toward the chuck, Z0 front face. Front turret / opposite side flips G02↔G03. No tool nose comp shown. Units: ${u}.</span>`;draw(q)}
+`<span class="w">⚠ VERIFY IN SIMULATION: all three arcs use ${q.d0} (default G02 follows Adam's confirmation on his machine: sphere centre on X0, cutting toward the chuck, Z0 front face). A front/rear turret change or a reversed path flips G02↔G03 – use the Arc direction selector. No tool nose comp shown. Units: ${u}.</span>`;draw(q)}
 catch(e){$("err").textContent=e;$("res").innerHTML="";draw(null)}}
-$("go").onclick=calc;["shape","u"].forEach(k=>$(k).onchange=()=>{if($("res").innerHTML)calc()});
+$("go").onclick=calc;["shape","u","ad"].forEach(k=>$(k).onchange=()=>{if($("res").innerHTML)calc()});
 $("srt").onchange=()=>{$("srl").firstChild.textContent=$("srt").value==="d"?"Spherical diameter SØ":"Spherical radius R"};
 $("clr").onclick=()=>{["R","W","r","zc"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
 $("R").value=30;$("W").value=40;$("r").value=2;calc();}
