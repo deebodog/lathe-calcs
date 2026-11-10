@@ -13,6 +13,7 @@ svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#ff
 <label>Part length L<input id="L" type="number" inputmode="decimal" step="any"></label>
 <label id="wl" style="display:none">Groove width w (along Z)<input id="w" type="number" inputmode="decimal" step="any"></label>
 <label>X start Ø (blank = D)<span style="display:flex;gap:4px"><button type="button" id="xm" style="width:auto;margin:0;padding:8px 12px">−</button><input id="xs" type="number" inputmode="decimal" step="0.1"><button type="button" id="xp" style="width:auto;margin:0;padding:8px 12px">+</button></span></label>
+<label>Z start approach (blank = arc start, Z+ ok)<input id="zst" type="number" inputmode="decimal" step="any"></label>
 <label>Centre Z (blank = L/2, ± ok)<input id="zc" type="number" inputmode="decimal" step="any"></label></div>
 <p style="font-size:.85em">Z0 = part front face. X = diameter. Sphere centre on the centreline at mid-length unless overridden.</p>
 <button id="go">Calculate</button> <button id="clr">Clear</button>
@@ -28,14 +29,17 @@ if(shape==="groove"){if(!(w>0))throw"Groove width w must be positive";if(SR<w/2-
 else{if(SR<D/2-1e-12)throw"SR must be at least D/2 ("+D/2+") – sphere doesn't reach the "+(shape==="bore"?"bore":"OD");
  c=Math.sqrt(Math.max(0,SR*SR-D*D/4));r.depth=SR-D/2;r.extDia=2*SR;r.cmd="G03";}
 r.c=c;r.zs=zc+c;r.ze=zc-c;r.lenZ=2*c;r.arc=2*SR*Math.asin(Math.min(1,c/SR));
-if(r.zs>1e-9||r.ze<-L-1e-9)throw`Arc runs off the part: Z${Z3(r.zs)} to Z${Z3(r.ze)} not within Z0 to Z-${X(L)}`;
+if(r.ze<-L-1e-9)throw`Arc runs off the part: Z${Z3(r.zs)} to Z${Z3(r.ze)} not within Z0 to Z-${X(L)}`;r.zfront=r.zs>1e-9;
 r.prog=`G01 X${X(D)} Z${Z3(r.zs)}\n${r.cmd} X${X(D)} Z${Z3(r.ze)} R${X(SR)}`;return r;}
+function zline(r,xs,zst){if(zst==null||isNaN(zst))return r;
+if(zst<r.zs-1e-9)throw"Z start "+Z3(zst)+" is past the arc start Z"+Z3(r.zs)+" – start must be at or in front of the arc start";
+r.zst=zst;r.prog=`G00 X${X(xs)} Z${Z3(zst)}\n`+r.prog;r.zplus=zst>1e-9;return r;}
 function solve(i){const D=i.D;let xs=i.xs;if(xs==null||isNaN(xs))xs=D;if(!(xs>0))throw"X start must be positive";
-const fin=core(i),off=Math.abs(xs-D)>1e-9;if(!off){fin.xs=xs;fin.off=false;fin.warn="";return fin;}
+const fin=core(i),off=Math.abs(xs-D)>1e-9;if(!off){fin.xs=xs;fin.off=false;fin.warn="";return zline(fin,xs,i.zst);}
 let r;try{r=core({...i,D:xs});}catch(e){throw"At X start "+X(xs)+": "+e;}
 r.xs=xs;r.D=D;r.off=true;r.fzs=fin.zs;r.fze=fin.ze;r.warn="";
 if(i.shape==="bore"?xs>D+1e-9:xs<D-1e-9)r.warn="X start "+X(xs)+(i.shape==="bore"?" is larger than the bore":" is smaller than the OD")+" Ø"+X(D)+" – this pass cuts INTO the finished profile.";
-return r;}
+return zline(r,xs,i.zst);}
 if(typeof module!=="undefined")module.exports={solve};
 else{
 const $=id=>document.getElementById(id),F=v=>v.toFixed(3);
@@ -56,6 +60,7 @@ if(r.shape==="bore"){const top=Math.min(ypk,yb)-35;
 else{s+=`<path d="M${px(0)} ${cy} L${prof} L${px(-r.L)} ${cy}Z" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>`+T(px(-r.L/2),yb+(cy-yb)*0.65,"part Ø"+X(r.D),"#1565c0");}
 s+=`<line x1="${px(r.zc)}" y1="${cy}" x2="${px(r.zc)}" y2="${ypk}" stroke="#c62828"/><circle cx="${px(r.zc)}" cy="${cy}" r="3.5" fill="#c62828"/>`+T(px(r.zc)+4,(cy+ypk)/2-8,"SR"+X(r.SR),"#c62828","start");
 s+=`<line x1="${px(0)}" y1="12" x2="${px(0)}" y2="${cy+30}" stroke="#c62828" stroke-dasharray="4"/>`+T(px(0),10,"Z0","#c62828","end");
+if(r.zst!=null){const zx=Math.min(px(r.zst),W-8);s+=`<line x1="${zx}" y1="${py(R0)}" x2="${px(r.zs)}" y2="${py(R0)}" stroke="#ef6c00" stroke-dasharray="5 3" stroke-width="2"/><circle cx="${zx}" cy="${py(R0)}" r="4" fill="#ef6c00"/>`+T(zx,py(R0)-8,"start Z"+F(r.zst),"#ef6c00","end");}
 [[r.zs,cy+13],[r.ze,cy+26]].forEach(([z,y])=>{s+=`<line x1="${px(z)}" y1="${py(dr(z))}" x2="${px(z)}" y2="${y-9}" stroke="#2e7d32" stroke-dasharray="2"/>`+T(px(z),y,"Z"+F(z),"#2e7d32")});
 s+=T(px(-r.L),cy+40,"L="+X(r.L),"#555","end").replace('text-anchor="end"','text-anchor="start"').replace(`x="${px(-r.L)}"`,'x="4"');
 s+=T(px(r.zc),(r.shape==="groove"?ypk+14:ypk-6)+(r.shape==="bore"?0:0),(r.shape==="groove"?"bottom Ø":"peak Ø")+X(r.extDia),"#0d47a1").replace('font-size="11"','font-size="11" font-weight="bold"');
@@ -63,14 +68,14 @@ s+=T(W/2,cy+40,"← chuck   "+({convex:"CONVEX OD",groove:"CONCAVE GROOVE",bore:
 $("svg").innerHTML=s;}
 function calc(){$("err").textContent="";const shape=$("shape").value,u=$("u").value,p=k=>parseFloat($(k).value);
 let SR=p("sr");if($("srt").value==="d")SR/=2;
-try{const r=solve({xs:$("xs").value===""?null:p("xs"),SR,D:p("d"),L:p("L"),w:p("w"),zc:$("zc").value===""?null:p("zc"),shape});
-$("res").innerHTML=`<pre>${r.prog}</pre>`+(r.warn?`<div id="err">⚠ ${r.warn}</div>`:"")+(r.off?`<span style="font-size:.85em;font-family:system-ui">X start: arc is calculated at this diameter with the same SR and centre.</span><br>`:"")+`Using: SR ${X(r.SR)}, ${shape==="bore"?"bore":"OD"} Ø${X(r.D)}, centre Z${F(r.zc)}, L ${X(r.L)}, X start ${X(r.xs)}<br>Z start = ${F(r.zs)}<br>Z end = ${F(r.ze)}<br>${r.off?`(finished Ø${X(r.D)} arc: Z${F(r.fzs)} to Z${F(r.fze)})<br>`:""}Arc length along Z = ${F(r.lenZ)} ${u}<br>True arc length = ${F(r.arc)} ${u}<br>`+
+try{const r=solve({xs:$("xs").value===""?null:p("xs"),SR,D:p("d"),L:p("L"),w:p("w"),zc:$("zc").value===""?null:p("zc"),zst:$("zst").value===""?null:p("zst"),shape});
+$("res").innerHTML=`<pre>${r.prog}</pre>`+(r.warn?`<div id="err">⚠ ${r.warn}</div>`:"")+(r.off?`<span style="font-size:.85em;font-family:system-ui">X start: arc is calculated at this diameter with the same SR and centre.</span><br>`:"")+(r.zst!=null?`<span style="font-size:.85em;font-family:system-ui">Z start ${F(r.zst)}${r.zplus?" (in front of Z0, in air)":""}: rapid to X${X(r.xs)} Z${F(r.zst)}, then feed along X${X(r.xs)} to the arc start. Arc is unchanged.</span><br>`:"")+(r.zfront?`<div class="w">Arc start is at Z+${F(r.zs)} – in front of the face, in air. The cut only begins where the arc meets Z0; the tool is not in the part there.</div>`:"")+`Using: SR ${X(r.SR)}, ${shape==="bore"?"bore":"OD"} Ø${X(r.D)}, centre Z${F(r.zc)}, L ${X(r.L)}, X start ${X(r.xs)}<br>Z start = ${F(r.zs)}<br>Z end = ${F(r.ze)}<br>${r.off?`(finished Ø${X(r.D)} arc: Z${F(r.fzs)} to Z${F(r.fze)})<br>`:""}Arc length along Z = ${F(r.lenZ)} ${u}<br>True arc length = ${F(r.arc)} ${u}<br>`+
 (shape==="groove"?`Groove depth (radial) = ${F(r.depth)} ${u}<br>Bottom diameter = ${F(r.extDia)} ${u}<br>`:`${shape==="bore"?"Max pocket":"Peak"} diameter = ${F(r.extDia)} ${u} (at Z${F(r.zc)})<br>${shape==="bore"?"Pocket depth":"Bulge"} (radial) = ${F(r.depth)} ${u}<br>`)+
 `SR = ${F(r.SR)} (SØ ${F(2*r.SR)})<br><span class="w">⚠ VERIFY IN SIMULATION: ${r.cmd} assumes Fanuc, rear-type turret (X+ up), tool cutting toward the chuck, Z0 on front face. Front turret / opposite tool side / reversed path flips G02↔G03. No tool nose comp shown.</span>`;draw(r.off?{...r,D:r.xs}:r)}
 catch(e){$("err").textContent=e;$("res").innerHTML="";draw(null)}}
 $("shape").onchange=()=>{const s=$("shape").value;$("wl").style.display=s==="groove"?"":"none";$("dl").firstChild.textContent=s==="bore"?"Bore diameter D":"Outer diameter D";if($("res").innerHTML)calc()};
 $("srt").onchange=()=>{$("srl").firstChild.textContent=$("srt").value==="d"?"Spherical diameter SØ":"Spherical radius SR"};
-$("go").onclick=calc;const st=()=>$("u").value==="in"?0.001:0.1;const bump=d=>{let v=$("xs").value===""?parseFloat($("d").value)||0:parseFloat($("xs").value);v=+(v+d*st()).toFixed(4);$("xs").value=v;calc()};$("xm").onclick=()=>bump(-1);$("xp").onclick=()=>bump(1);$("xs").oninput=()=>{if($("res").innerHTML)calc()};$("u").onchange=()=>{$("xs").step=st();if($("res").innerHTML)calc()};
-$("clr").onclick=()=>{["sr","d","L","w","zc","xs"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
+$("go").onclick=calc;const st=()=>$("u").value==="in"?0.001:0.1;const bump=d=>{let v=$("xs").value===""?parseFloat($("d").value)||0:parseFloat($("xs").value);v=+(v+d*st()).toFixed(4);$("xs").value=v;calc()};$("xm").onclick=()=>bump(-1);$("xp").onclick=()=>bump(1);$("xs").oninput=()=>{if($("res").innerHTML)calc()};$("zst").oninput=()=>{if($("res").innerHTML)calc()};$("u").onchange=()=>{$("xs").step=st();if($("res").innerHTML)calc()};
+$("clr").onclick=()=>{["sr","d","L","w","zc","xs","zst"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
 $("sr").value=40;$("d").value=78;$("L").value=20;calc();}
 </script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script></body></html>
