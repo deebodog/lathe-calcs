@@ -43,13 +43,13 @@ function solve(i){
  if(d>R+1e-12)throw"Groove depth must not be more than the radius";
  let zc=num(i.zc);if(!isFinite(zc))throw"Enter the groove centre Z";zc=-Math.abs(zc);
  const back=!!i.back;
- const half=Math.sqrt(Math.max(0,R*R-(R-d)*(R-d))),zf=zc+half,ze=zc-half,bot=mean+2*d,chX=mean+2*ch,zChF=-ch,zChB=-(L-ch),xs=chX+2,xOff=mean-1,zEnd=back?zChB:-L;
+ const half=Math.sqrt(Math.max(0,R*R-(R-d)*(R-d))),zf=zc+half,ze=zc-half,bot=mean+2*d,chX=mean+2*ch,zChF=-ch,zChB=-(L-ch),xs=chX+8,xOff=Math.max(0,mean-6.4),zEnd=back?zChB:-L;
  if(zf>zChF+1e-9||ze<zEnd-1e-9)throw"The groove overlaps a chamfer or is outside the part";
  const cmd="G03";
- let prog="G00 X0.\nG00 Z1.\nG00 G41 X"+W(xs)+"\nG01 X"+W(mean)+" Z"+W(zChF)+"\nG01 Z"+W(zf)+"\n"+cmd+" X"+W(bot)+" Z"+W(zc)+" R"+W(R)+"\n"+cmd+" X"+W(mean)+" Z"+W(ze)+" R"+W(R)+"\n";
+ let prog="G00 X0.\nG00 Z4.\nG00 G41 X"+W(xs)+"\nG01 X"+W(mean)+" Z"+W(zChF)+"\nG01 Z"+W(zf)+"\n"+cmd+" X"+W(bot)+" Z"+W(zc)+" R"+W(R)+"\n"+cmd+" X"+W(mean)+" Z"+W(ze)+" R"+W(R)+"\n";
  if(back)prog+="G01 Z"+W(zChB)+"\nG01 X"+W(chX)+" Z"+W(-L)+"\n";
  else prog+="G01 Z"+W(-L)+"\n";
- prog+="G01 X"+W(xOff)+"\nG00 G40 Z1.\nG00 Z50.";
+ prog+="G01 G40 X"+W(xOff)+"\nG00 Z1.\nG00 Z50.";
  return{D,ES,EI,mean,L,ch,R,d,zc,half,zf,ze,bot,chX,zChF,zChB,xs,xOff,back,cmd,prog};
 }
 if(typeof module!=="undefined")module.exports={solve,W};
