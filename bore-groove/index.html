@@ -1,14 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Adam's Bore + Oil Groove</title>
-<style>*{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0 auto;padding:12px;background:#f3f5f8;color:#222;max-width:560px}h1{font-size:1.2em;margin:0}
-.g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}label{min-width:0;font-size:.9em;display:flex;flex-direction:column}
-input,button{max-width:100%;min-width:0;font-size:1.1em;padding:10px;border:1px solid #aab;border-radius:8px}input{width:100%}
-button{background:#1565c0;color:#fff;border:0;margin-top:10px;width:48%}#clr{background:#777}
-#err{color:#c62828;font-weight:bold;min-height:1.2em}
-#res{background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-family:monospace}
-pre{font-size:1.15em;background:#eef;padding:6px;border-radius:6px;margin:0}
-svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}#copy{margin-top:0;width:auto;padding:8px 14px;font-size:.95em}.chk{flex-direction:row;align-items:center;gap:8px;margin-top:10px}#bc{width:auto;padding:0;accent-color:#1565c0}</style>
-<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1565c0"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
-<header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1>Adam's Bore + Oil Groove</h1><div style="font-size:.8em;color:#555">Leicester, England</div></div></header>
+<link rel="stylesheet" href="app.css">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#003A8C"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
+<header class="top"><a class="brand" href="../" aria-label="Lathe Calcs home"><span class="mark" aria-hidden="true"></span><span class="wordmark">Lathe Calcs</span></a><div class="pagehead"><h1>Adam's Bore + Oil Groove</h1><div class="sub"><svg class="flag" width="24" height="12" viewBox="0 0 60 30" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg> Leicester, England</div></div></header>
 <div class="g">
 <label>Bore Ø<input id="D" type="number" inputmode="decimal" step="any"></label>
 <label>Part length<input id="L" type="number" inputmode="decimal" step="any"></label>
@@ -23,7 +16,7 @@ svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#ff
 <button type="button" id="go">Calculate</button> <button type="button" id="clr">Clear</button>
 <div id="err"></div><div id="res"></div>
 <svg id="svg" viewBox="0 0 320 220" aria-label="Bore chamfer and oil groove"></svg>
-<p style="font-size:.85em;margin-top:16px"><a href="../sphere/" style="color:#1565c0">Spherical radius (bore)</a></p>
+<p style="font-size:.85em;margin-top:16px"><a href="../sphere/" style="color:#003A8C">Spherical radius (bore)</a></p>
 <script>
 const W=v=>{const s=(Math.round(Math.abs(v)*1000+1e-9)/1000*(v<0?-1:1)).toString();return s.includes(".")?s:s+"."};
 function num(v){if(v==null||v==="")return NaN;if(typeof v==="number")return v;const n=Number(String(v).trim().replace(/[−–—]/g,"-"));return n}

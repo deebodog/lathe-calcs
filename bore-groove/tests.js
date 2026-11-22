@@ -46,7 +46,7 @@ assert(html.includes("copyText")&&html.includes("Copied"));
 assert.equal((html.match(/\$\("ch"\)\.value=0\.5/)||[])[0],'$("ch").value=0.5');
 assert(html.includes("G00 Z4.")&&html.includes("G01 G40 X")&&html.includes("G00 Z50."));
 assert(!html.includes("G00 G40 Z1."));
-assert(fs.readFileSync(__dirname+"/sw.js","utf8").includes("boregroove-v3"));
+assert(fs.readFileSync(__dirname+"/sw.js","utf8").includes("boregroove-v4"));
 assert(fs.readFileSync(__dirname+"/sw.js","utf8").includes("startsWith('boregroove-')"));
 assert(!fs.readFileSync(__dirname+"/sw.js","utf8").includes("boregroove-v2"));
 console.log("all tests passed\n--- back chamfer off ---\n"+off+"\n--- back chamfer on ---\n"+on);
