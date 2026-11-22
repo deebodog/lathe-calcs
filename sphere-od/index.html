@@ -1,116 +1,74 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Adam's OD Spherical Radius Calculator</title>
-<style>*{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;padding:12px;background:#f3f5f8;color:#222;max-width:560px;margin:auto}h1{font-size:1.3em}
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Adam's OD Spherical Radius</title>
+<style>*{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0 auto;padding:12px;background:#f3f5f8;color:#222;max-width:560px}h1{font-size:1.2em;margin:0}
 .g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}label{min-width:0;font-size:.9em;display:flex;flex-direction:column}
-input,select{width:100%}input,select,button{max-width:100%;min-width:0;font-size:1.1em;padding:10px;border:1px solid #aab;border-radius:8px}
-button{background:#1565c0;color:#fff;border:0;margin-top:10px;width:48%}#clr{background:#777}#err{color:#c62828;font-weight:bold;min-height:1.2em}
-svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}
+input,button{max-width:100%;min-width:0;font-size:1.1em;padding:10px;border:1px solid #aab;border-radius:8px}input{width:100%}
+button{background:#1565c0;color:#fff;border:0;margin-top:10px;width:48%}#clr{background:#777}
+#err{color:#c62828;font-weight:bold;min-height:1.2em}
 #res{background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-family:monospace}
-.n{font-size:.85em;color:#555;font-family:system-ui}.w{color:#c62828;font-family:system-ui;font-size:.85em}
-pre{font-size:1.15em;background:#eef;padding:6px;border-radius:6px}details{margin-top:10px}summary{font-size:.9em;cursor:pointer}
+pre{font-size:1.15em;background:#eef;padding:6px;border-radius:6px;margin:0}
+svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}
 a{color:#1565c0}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1565c0"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
-<header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1 style="margin:0;font-size:1.2em">Adam's OD Spherical Radius</h1><div style="font-size:.8em;color:#555">Leicester, England · OD crown</div></div></header>
+<header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1>Adam's OD Spherical Radius</h1><div style="font-size:.8em;color:#555">Leicester, England</div></div></header>
 <div class="g">
-<label>Enter sphere as <select id="srt"><option value="r">Radius SR</option><option value="d">Diameter SØ</option></select></label>
-<label id="srl"><span>Spherical radius SR</span><input id="sr" type="number" inputmode="decimal" step="any"></label>
-<label>Part length L<input id="L" type="number" inputmode="decimal" step="any"></label>
-<label>Crown width<input id="w" type="number" inputmode="decimal" step="any"></label>
-<label>Offset below edge Ø<input id="off" type="number" inputmode="decimal" step="any"><span class="n" style="margin-top:2px">On diameter. 0.5–1.0 is the usual range.</span></label>
-<label>Centre Z (blank = L/2, ± ok)<input id="zc" type="number" inputmode="decimal" step="any"><span class="n" style="margin-top:2px">30 and −30 are the same. Z0 is the front face.</span></label>
+<label>Sphere Ø<input id="D" type="number" inputmode="decimal" step="any"></label>
+<label>Centre Z<input id="zc" type="number" inputmode="decimal" step="any"></label>
+<label>Band start Z<input id="zs" type="number" inputmode="decimal" step="any"></label>
+<label>Band end Z<input id="ze" type="number" inputmode="decimal" step="any"></label>
+<label>Run-out each end<input id="ro" type="number" inputmode="decimal" step="0.1" min="0"></label>
 </div>
-<details><summary>Advanced — start / end X overrides</summary>
-<div class="g" style="margin-top:8px">
-<label>Start X Ø (blank = edge − offset)<input id="xs" type="number" inputmode="decimal" step="any"></label>
-<label>End X Ø (blank = edge − offset)<input id="xe" type="number" inputmode="decimal" step="any"></label>
-</div>
-<p class="n">Leave these blank to start and end at the edge diameter minus the offset (same X both sides). Fill one or both to set them separately.</p>
-</details>
-<p class="n">Z0 = part front face. X = diameter. All sizes in mm. The default is SR85 (a Ø170 sphere) from the drawing, 46 mm crown on a 60 mm part, centre at Z−30. Change SR if 170 is not the sphere size.</p>
-<p class="n"><a href="../sphere/">Bore (ID) spherical radius calculator</a></p>
-<button id="go">Calculate</button> <button id="clr">Clear</button>
+<button type="button" id="go">Calculate</button> <button type="button" id="clr">Clear</button>
 <div id="err"></div><div id="res"></div>
-<svg id="svg" viewBox="0 0 320 300" aria-label="OD spherical crown and toolpath"></svg>
+<svg id="svg" viewBox="0 0 320 220" aria-label="OD spherical crown"></svg>
 <script>
-const X=v=>{const s=(+v.toFixed(3)).toString();return s.includes(".")?s:s+"."},Z3=v=>(Math.abs(v)<5e-4?0:v).toFixed(3);
+const W=v=>{const s=(+v.toFixed(3)).toString();return s.includes(".")?s:s+"."};
 function num(v){if(v==null||v==="")return NaN;if(typeof v==="number")return v;const n=Number(String(v).trim().replace(/[−–—]/g,"-"));return n}
+function zNeg(v){const n=num(v);if(!isFinite(n))return NaN;return -Math.abs(n)}
+function xAt(SR,zc,z){const dz=z-zc,h=SR*SR-dz*dz;if(h<-1e-12)throw"Z"+W(z)+" is outside the sphere";return 2*Math.sqrt(Math.max(0,h))}
 function solve(i){
- const SR=+i.SR,L=+i.L,w=+i.w;
- if(!(SR>0))throw"SR must be positive";
- if(!(L>0))throw"Part length L must be positive";
- if(!(w>0))throw"Crown width must be positive";
- if(w>L+1e-12)throw"Crown width must not be longer than the part (L "+X(L)+")";
- if(SR<w/2-1e-12)throw"SR must be at least half the crown width ("+X(w/2)+")";
- let off=i.off;if(off==null||off===""||(typeof off==="number"&&isNaN(off)))off=1;
- off=+off;if(!isFinite(off)||off<0)throw"Offset below the edge must be 0 or more";
- let zc=i.zc;if(zc==null||zc===""||isNaN(num(zc)))zc=-L/2;else zc=-Math.abs(num(zc));
- const half=w/2,edge=2*Math.sqrt(Math.max(0,SR*SR-half*half));
- let xs=i.xs,xe=i.xe;
- const xDef=edge-off;
- if(xs==null||xs===""||isNaN(num(xs)))xs=xDef;else xs=+num(xs);
- if(xe==null||xe===""||isNaN(num(xe)))xe=xDef;else xe=+num(xe);
- if(!(xs>0))throw"X start must be positive";
- if(!(xe>0))throw"X end must be positive";
- if(xs>2*SR+1e-12)throw"X start "+X(xs)+" is larger than the sphere Ø"+X(2*SR);
- if(xe>2*SR+1e-12)throw"X end "+X(xe)+" is larger than the sphere Ø"+X(2*SR);
- if(SR<xs/2-1e-12)throw"SR must be at least X start/2 ("+X(xs/2)+")";
- if(SR<xe/2-1e-12)throw"SR must be at least X end/2 ("+X(xe/2)+")";
- const dzs=Math.sqrt(Math.max(0,SR*SR-(xs/2)*(xs/2)));
- const dze=Math.sqrt(Math.max(0,SR*SR-(xe/2)*(xe/2)));
- const zs=zc+dzs,ze=zc-dze,zef=zc+half,zeb=zc-half;
- if(zs>1e-9||zs<-L-1e-9)throw"Start Z"+Z3(zs)+" is outside the part (Z0 to Z-"+X(L)+")";
- if(ze>1e-9||ze<-L-1e-9)throw"End Z"+Z3(ze)+" is outside the part (Z0 to Z-"+X(L)+")";
- let clear=i.clear;if(clear==null||clear===""||isNaN(num(clear)))clear=2;else clear=+num(clear);
- if(!(clear>=0))throw"Clearance above the peak must be 0 or more";
- const safe=2*SR+clear;
- const prog=`G00 X${X(safe)} Z${Z3(zs)}\nG01 X${X(xs)} Z${Z3(zs)}\nG03 X${X(xe)} Z${Z3(ze)} R${X(SR)}\nG01 X${X(safe)}`;
- return{SR,L,w,off,zc,edge,xs,xe,zs,ze,zef,zeb,dzs,dze,safe,clear,xDef,prog,peak:2*SR,cmd:"G03"};
+ const D=num(i.D);
+ if(!(D>0))throw"Sphere Ø must be more than 0";
+ const SR=D/2;
+ let ro=i.ro;if(ro==null||ro===""||(typeof ro==="number"&&isNaN(ro)))ro=1;else ro=num(ro);
+ if(!isFinite(ro)||ro<0)throw"Run-out must be 0 or more";
+ const zc=zNeg(i.zc),zbS=zNeg(i.zs),zbE=zNeg(i.ze);
+ if(!isFinite(zc))throw"Enter the centre Z";
+ if(!isFinite(zbS))throw"Enter the band start Z";
+ if(!isFinite(zbE))throw"Enter the band end Z";
+ if(zbS<=zbE+1e-12)throw"Band start Z must be in front of band end Z (nearer Z0)";
+ const zs=zbS+ro,ze=zbE-ro;
+ const xs=xAt(SR,zc,zs),xe=xAt(SR,zc,ze),edgeS=xAt(SR,zc,zbS),edgeE=xAt(SR,zc,zbE);
+ const prog="G00 X"+W(xs)+" Z"+W(zs)+"\nG03 X"+W(xe)+" Z"+W(ze)+" R"+W(SR);
+ return{D,SR,zc,zbS,zbE,ro,zs,ze,xs,xe,edgeS,edgeE,peak:D,prog};
 }
-if(typeof module!=="undefined")module.exports={solve,X,Z3};
+if(typeof module!=="undefined")module.exports={solve,W};
 else{
-const $=id=>document.getElementById(id),F=v=>v.toFixed(3);
+const $=id=>document.getElementById(id);
 function draw(r){if(!r){$("svg").innerHTML="";return}
- const W=320,x0=290,x1=40,cy=220,sc=(x0-x1)/r.L,px=z=>x0+z*sc;
- const Rmax=Math.max(r.SR,r.edge/2,r.xs/2,r.xe/2,r.safe/2);
- const ys=118/Rmax,py=rad=>cy-(rad>=0?rad:0)*ys;
- const T=(x,y,t,c,a)=>`<text x="${x}" y="${y}" font-size="11" fill="${c||'#000'}" text-anchor="${a||'middle'}">${t}</text>`;
+ const x0=300,x1=20,z0=Math.max(0,r.zs)+Math.max(r.ro,2),z1=r.ze-Math.max(r.ro,2);
+ const sc=(x0-x1)/Math.max(z0-z1,1e-9),px=z=>x0-(z0-z)*sc;
+ const rHi=r.SR,rLo=Math.min(r.xs,r.xe,r.edgeS,r.edgeE)/2;
+ const pad=Math.max((rHi-rLo)*0.5,1.2),rMin=rLo-pad,rMax=rHi+pad*0.4;
+ const top=22,bot=175,ys=(bot-top)/Math.max(rMax-rMin,1e-9),py=rad=>bot-(rad-rMin)*ys;
+ const T=(x,y,t,c,a)=>`<text x="${x}" y="${y}" font-size="11" fill="${c||"#000"}" text-anchor="${a||"middle"}">${t}</text>`;
  const tr=z=>Math.sqrt(Math.max(0,r.SR*r.SR-(z-r.zc)**2));
- let crown=[];
- for(let i=0;i<=80;i++){const z=r.zef+(r.zeb-r.zef)*i/80;crown.push([px(z),py(tr(z))]);}
- const path=crown.map((p,i)=>(i?"L":"") +p[0].toFixed(2)+" "+p[1].toFixed(2)).join(" ");
- let cut=[];
- for(let i=0;i<=80;i++){const z=r.zs+(r.ze-r.zs)*i/80;cut.push([px(z),py(tr(z))]);}
- const cutP=cut.map((p,i)=>(i?"L":"M")+p[0].toFixed(2)+" "+p[1].toFixed(2)).join(" ");
- let s=`<line x1="5" y1="${cy}" x2="${W-5}" y2="${cy}" stroke="#888" stroke-dasharray="8 3"/>`+T(8,cy-4,"centreline","#888","start");
- s+=`<path d="M${px(0).toFixed(2)} ${py(r.xs/2).toFixed(2)} L${px(r.zef).toFixed(2)} ${py(r.xs/2).toFixed(2)} L${px(r.zef).toFixed(2)} ${py(r.edge/2).toFixed(2)} L${path} L${px(r.zeb).toFixed(2)} ${py(r.xe/2).toFixed(2)} L${px(-r.L).toFixed(2)} ${py(r.xe/2).toFixed(2)} L${px(-r.L).toFixed(2)} ${cy} L${px(0).toFixed(2)} ${cy}Z" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>`;
- s+=`<path d="${cutP}" fill="none" stroke="#2e7d32" stroke-width="2.5"/>`;
- s+=`<line x1="${px(r.zc)}" y1="${cy}" x2="${px(r.zc)}" y2="${py(r.SR)}" stroke="#c62828"/><circle cx="${px(r.zc)}" cy="${cy}" r="3.5" fill="#c62828"/>`+T(px(r.zc)+4,(cy+py(r.SR))/2-8,"SR"+X(r.SR),"#c62828","start");
- s+=`<line x1="${px(0)}" y1="14" x2="${px(0)}" y2="${cy+28}" stroke="#c62828" stroke-dasharray="4"/>`+T(px(0),12,"Z0","#c62828","end");
- s+=`<circle cx="${px(r.zs)}" cy="${py(r.xs/2)}" r="4" fill="#2e7d32"/>`+T(px(r.zs),py(r.xs/2)-10,"start","#2e7d32");
- s+=`<circle cx="${px(r.ze)}" cy="${py(r.xe/2)}" r="4" fill="#2e7d32"/>`+T(px(r.ze),py(r.xe/2)-10,"end","#2e7d32");
- s+=T(px(r.zc),py(r.SR)-8,"peak Ø"+X(r.peak),"#0d47a1").replace('font-size="11"','font-size="11" font-weight="bold"');
- s+=T(px((r.zef+r.zc)/2),py(r.edge/2)+16,"edge Ø"+X(r.edge),"#1565c0");
- [[r.zs,cy+14],[r.ze,cy+26]].forEach(([z,y])=>{s+=`<line x1="${px(z)}" y1="${py(tr(z))}" x2="${px(z)}" y2="${y-9}" stroke="#2e7d32" stroke-dasharray="2"/>`+T(px(z),y,"Z"+F(z),"#2e7d32")});
- s+=T(4,cy+40,"L="+X(r.L),"#555","start");
- s+=T(W/2,cy+40,"← chuck   OD CROWN","#555");
+ let crown="";
+ for(let i=0;i<=80;i++){const z=r.zbS+(r.zbE-r.zbS)*i/80;crown+=(i?"L":"")+px(z).toFixed(1)+" "+py(tr(z)).toFixed(1)+" "}
+ let cut="M"+px(r.zs).toFixed(1)+" "+py(r.xs/2).toFixed(1)+" ";
+ for(let i=1;i<=80;i++){const z=r.zs+(r.ze-r.zs)*i/80;cut+="L"+px(z).toFixed(1)+" "+py(tr(z)).toFixed(1)+" "}
+ let s=`<path d="M${px(r.zs).toFixed(1)} ${py(r.xs/2).toFixed(1)} L${px(r.zbS).toFixed(1)} ${py(r.xs/2).toFixed(1)} L${px(r.zbS).toFixed(1)} ${py(r.edgeS/2).toFixed(1)} L${crown}L${px(r.zbE).toFixed(1)} ${py(r.xe/2).toFixed(1)} L${px(r.ze).toFixed(1)} ${py(r.xe/2).toFixed(1)} L${px(r.ze).toFixed(1)} ${bot+8} L${px(r.zs).toFixed(1)} ${bot+8}Z" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>`;
+ s+=`<path d="${cut}" fill="none" stroke="#2e7d32" stroke-width="2.5"/>`;
+ s+=`<circle cx="${px(r.zs)}" cy="${py(r.xs/2)}" r="4" fill="#2e7d32"/>`+T(px(r.zs),py(r.xs/2)+16,"Z"+W(r.zs),"#2e7d32");
+ s+=`<circle cx="${px(r.ze)}" cy="${py(r.xe/2)}" r="4" fill="#2e7d32"/>`+T(px(r.ze),py(r.xe/2)+16,"Z"+W(r.ze),"#2e7d32");
+ s+=T(px(r.zc),py(r.SR)-8,"Ø"+W(r.peak),"#0d47a1");
+ if(z0>=-1e-9&&z1<=1e-9)s+=`<line x1="${px(0)}" y1="10" x2="${px(0)}" y2="${bot+8}" stroke="#c62828" stroke-dasharray="4"/>`+T(px(0),12,"Z0","#c62828","end");
+ s+=T(20,214,"← chuck","#555","start");
  $("svg").innerHTML=s;}
 function calc(){$("err").textContent="";
- let SR=parseFloat($("sr").value);if($("srt").value==="d")SR/=2;
- try{const r=solve({SR,L:parseFloat($("L").value),w:parseFloat($("w").value),off:$("off").value===""?null:parseFloat($("off").value),zc:$("zc").value===""?null:parseFloat($("zc").value),xs:$("xs").value===""?null:parseFloat($("xs").value),xe:$("xe").value===""?null:parseFloat($("xe").value)});
- $("res").innerHTML=`<pre>${r.prog}</pre>`+
- `<span class="n">G00 is to X${X(r.safe)} (${X(r.clear)} mm clear of the peak Ø${X(r.peak)}) at the start Z, then G01 in to the arc start. The last G01 retracts to the same clear X. Change the clearance in the program if you need more room.</span><br>`+
- `<b>Points (X = diameter)</b><br>`+
- `Crown edges at Z${F(r.zef)} and Z${F(r.zeb)}: Ø${X(r.edge)}<br>`+
- `Offset below edge: ${X(r.off)} (start/end X ${X(r.xDef)} unless overridden)<br>`+
- `Start: X${X(r.xs)} Z${F(r.zs)}<br>`+
- `End: X${X(r.xe)} Z${F(r.ze)}<br>`+
- `Peak Ø${X(r.peak)} at centre Z${F(r.zc)}<br>`+
- `Using: SR ${X(r.SR)} (SØ ${X(r.peak)}), crown ${X(r.w)}, L ${X(r.L)}<br>`+
- `<span class="w">⚠ VERIFY IN SIMULATION: G03 assumes Fanuc, X+ up, Z+ right, tool cutting toward the chuck, Z0 on the front face. Going over the crown (X larger in the middle) toward the chuck is anticlockwise — the same G03 as the bore calculator. Front turret / opposite tool side / reversed path flips G02↔G03.</span><br>`+
- `<span class="n">Use either the control's G42 with this profile, or a manually compensated path at radius SR + nose r — never both. No tool nose comp is applied here.</span>`;
- draw(r)}
+ try{const r=solve({D:$("D").value,zc:$("zc").value,zs:$("zs").value,ze:$("ze").value,ro:$("ro").value});
+  $("res").innerHTML="<pre>"+r.prog+"</pre>";draw(r)}
  catch(e){$("err").textContent=e;$("res").innerHTML="";draw(null)}}
-$("srt").onchange=()=>{$("srl").firstChild.textContent=$("srt").value==="d"?"Spherical diameter SØ":"Spherical radius SR"};
 $("go").onclick=calc;
-$("clr").onclick=()=>{["sr","L","w","off","zc","xs","xe"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
-$("sr").value=85;$("L").value=60;$("w").value=46;$("off").value=1;$("zc").value=-30;calc();}
+$("clr").onclick=()=>{["D","zc","zs","ze","ro"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
+$("D").value=169.89;$("zc").value=-30;$("zs").value=-7;$("ze").value=-53;$("ro").value=1;calc();}
 </script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script></body></html>
