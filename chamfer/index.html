@@ -1,8 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Adam's Chamfer Blend Calculator</title>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Adam's Chamfer Blend (OD) Calculator</title>
 <style>*{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;padding:12px;background:#f3f5f8;color:#222;max-width:560px;margin:auto}h1{font-size:1.3em}
 .g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}label{min-width:0;font-size:.9em;display:flex;flex-direction:column}label.f{grid-column:1/-1}
 input,select{width:100%}input,select,button{max-width:100%;min-width:0;font-size:1.1em;padding:10px;border:1px solid #aab;border-radius:8px}
-button{background:#1565c0;color:#fff;border:0;margin-top:10px}#clr{background:#777}#man{background:#2e7d32}#def{background:#455a64}
+button{background:#1565c0;color:#fff;border:0;margin-top:10px}#clr{background:#777}#man{background:#2e7d32}#def{background:#455a64}.st{display:flex;gap:6px;align-items:stretch}.st button.sgn{flex:none;width:52px;margin-top:0;padding:10px 0;background:#455a64}
 .btns{display:flex;flex-wrap:wrap;gap:8px}.btns button{margin-top:10px;flex:1;min-width:120px}
 #err{color:#c62828;font-weight:bold;min-height:1.2em}
 svg#svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}
@@ -12,18 +12,22 @@ svg#svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background
 .w{color:#c62828;font-family:system-ui;font-size:.85em}pre{font-size:1.15em;background:#eef;padding:6px;border-radius:6px;margin:8px 0}[hidden]{display:none!important}
 #copy{margin-top:0;width:auto;padding:8px 14px;font-size:.95em}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1565c0"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
-<header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1 style="margin:0;font-size:1.2em">Adam's Chamfer Blend</h1><div style="font-size:.8em;color:#555">Leicester, England</div></div></header>
+<header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1 style="margin:0;font-size:1.2em">Adam's Chamfer Blend (OD)</h1><div style="font-size:.8em;color:#555">Leicester, England · OD only</div></div></header>
 <div class="g">
 <label>Units <select id="u"><option value="mm" selected>mm</option><option value="in">inch</option></select></label>
 <label>Enter corner as <select id="mode"><option value="len" selected>Chamfer Z length</option><option value="zc">Corner Z</option></select></label>
 <label>Finished diameter D<input id="D" type="number" inputmode="decimal" step="any" value="80"></label>
-<label id="ll"><span>Chamfer Z length (from Z0)</span><input id="L" type="number" inputmode="decimal" step="any" value="1"></label>
-<label id="zl" hidden><span>Corner Z (usually negative)</span><input id="Zc" type="number" inputmode="decimal" step="any"></label>
-<label>Chamfer angle A° from Z<input id="A" type="number" inputmode="decimal" step="any" value="45"></label>
+<label id="ll"><span id="llcap">Chamfer Z length (from Z0)</span><input id="L" type="number" inputmode="decimal" step="any" value="1"></label>
+<label id="zl" hidden><span id="zlcap">Corner Z (must be 0 or negative)</span><div class="st"><button type="button" class="sgn" id="zcsgn" aria-label="toggle corner Z sign">+/−</button><input id="Zc" type="text" inputmode="text" enterkeyhint="done" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="e.g. -1 or -0.0842"></div></label>
+<label>Chamfer angle A° from Z<input id="A" type="number" inputmode="decimal" step="any" value="45"><span class="n" style="margin-top:2px">Measured from the Z axis (0° = along Z, 90° = a face). So 30° from the face is 60° here.</span></label>
 <label>Blend radius R<input id="R" type="number" inputmode="decimal" step="any" value="0.8"></label>
-<label class="f">Final Z on the diameter (optional)<input id="Zend" type="number" inputmode="decimal" step="any" placeholder="e.g. leave blank, or −1.125"><span class="n" style="margin-top:2px">Optional G01 along the OD toward the chuck after the arc.</span></label>
+<label class="f">Final Z on the diameter<div class="st"><button type="button" class="sgn" id="zendsgn" aria-label="toggle final Z sign">+/−</button><input id="Zend" type="text" inputmode="text" enterkeyhint="done" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="e.g. -1.125, or leave blank for G01 Z..."></div><span class="n" style="margin-top:2px">The G01 after the arc always appears. Fill this in for the move along the OD toward the chuck, or leave it blank and replace Z... in the program. Use +/− if your keypad has no minus.</span></label>
+<label class="f" style="flex-direction:row;align-items:center;gap:8px;display:flex"><input id="shift" type="checkbox" style="width:auto;min-width:0;padding:0;margin:0">Shift for manual nose-radius comp</label>
+<label id="rl" hidden>Nose radius r (blank = blend R)<input id="tnr" type="number" inputmode="decimal" step="any"></label>
 </div>
-<p class="n">Outside diameter, tool cutting toward the chuck (−Z). Start from the sharp corner where the chamfer meets the diameter. R is the part blend radius.</p>
+<p class="n"><b>OD only.</b> This is for a chamfer rolling onto an outside diameter, tool cutting toward the chuck (−Z). On a bore the same blend is <b>G02</b>, not G03. R is the part blend radius. Start from the sharp corner where the chamfer meets the diameter. A = 90° is a square step (a face into the OD).</p>
+<div class="note">For manual tool-nose-radius use, the corner Z must be the <b>tip-path corner</b>, not the drawing corner: drawing Z − r·(1 − tan(A/2)). For 45° that shift is 0.586r (e.g. −0.075 − 0.0092 = −0.0842 with r 0.0156). Turn the shift on to enter the drawing corner and r, and the page applies it.</div>
+<div class="note">The inch manual example (Load manual example) is the book job: Ø1.200, Zc −0.0842, R 0.0156. The book prints N67 as Z−0.0906, which is 0.0001 off the exact −0.09066 (this page rounds that to Z−0.0907).</div>
 <div class="btns"><button type="button" id="def">Metric default</button><button type="button" id="man">Load manual example</button><button type="button" id="clr">Clear</button></div>
 <div id="err"></div>
 <div class="out" id="out" hidden>
@@ -40,49 +44,70 @@ const rad=d=>d*Math.PI/180;
 function fix(v,dp){const p=10**dp;const x=Math.round(v*p+(v>=0?1e-9:-1e-9))/p;return (Object.is(x,-0)||Math.abs(x)<5e-12?0:x).toFixed(dp)}
 function word(v,dp){let s=fix(v,dp);if(s.indexOf(".")>=0)s=s.replace(/0+$/,"").replace(/\.$/,".");return s}
 function dpOf(units){return units==="in"||units==="inch"?4:3}
+function exact(v,dp){return fix(v,Math.max((dp||3)+1,5))}
+function parseNum(s){if(s==null||s==="")return NaN;if(typeof s==="number")return s;const t=String(s).trim().replace(/[−–—]/g,"-");if(t===""||t==="-"||t==="+"||t==="."||t==="-."||t==="+.")return NaN;const n=Number(t);return n}
+// Z shift from the drawing corner to the imaginary tip-path corner (slopes G).
+// G = r − r·tan(A/2) = r·(1 − tan(A/2)). At 45° this is r(2−√2) ≈ 0.5858r (0.586r). At 90° it is 0.
+function tipShift(r,A){if(!(r>0)||!isFinite(A)||A<=0||A>90)throw"Need a nose radius r > 0 and angle A from 0° to 90° for the TNR shift";if(A>=90-1e-12)return 0;return r*(1-Math.tan(rad(A/2)))}
 function solve(i){
  const units=(i.units==="in"||i.units==="inch")?"in":"mm",dp=dpOf(units);
- const D=+i.D,A=+i.A,R=+i.R;
+ const D=+i.D,A=+i.A,R=+i.R,square=Math.abs(A-90)<=1e-12;
  if(!isFinite(D)||!(D>0))throw"Finished diameter D must be more than 0";
  if(!isFinite(R)||!(R>0))throw"Blend radius R must be more than 0";
  if(!(D/2>R))throw"Blend radius R must be smaller than the shaft radius D/2 ("+fix(D/2,dp)+")";
  if(!isFinite(A)||A<=0||A>90)throw"Chamfer angle A must be more than 0° and at most 90°";
- let Zc=i.Zc,mode=i.mode||"zc";
+ let mode=i.mode||"zc",Zdraw,L=null;
  if(mode==="len"){
-  const L=+i.L;
+  L=parseNum(i.L);
   if(!isFinite(L)||!(L>0))throw"Chamfer Z length must be more than 0";
-  Zc=-Math.abs(L);
+  Zdraw=-Math.abs(L);
  }else{
-  Zc=+Zc;
-  if(!isFinite(Zc))throw"Enter the corner Z or the chamfer length";
+  if(i.Zc==null||i.Zc==="")throw"Enter the corner Z";
+  Zdraw=parseNum(i.Zc);
+  if(!isFinite(Zdraw))throw"Enter the corner Z";
+  if(Zdraw>1e-12)throw"Corner Z must be 0 or negative (toward the chuck). Z0 is the front face.";
  }
- const t=R*Math.tan(rad(A/2)),dz=t*Math.cos(rad(A)),dx=2*t*Math.sin(rad(A));
+ const shiftOn=!!i.shift;
+ let rTnr=null,shift=0,Zc=Zdraw;
+ if(shiftOn){
+  rTnr=(i.tnr==null||i.tnr==="")?R:+i.tnr;
+  if(!isFinite(rTnr)||!(rTnr>0))throw"Nose radius r must be more than 0";
+  shift=tipShift(rTnr,A);
+  Zc=Zdraw-shift;
+ }
+ const t=square?R:R*Math.tan(rad(A/2)),dz=square?0:t*Math.cos(rad(A)),dx=square?2*R:2*t*Math.sin(rad(A));
+ const x1e=D-dx,z1e=Zc+dz,z3e=Zc-t;
  const tS=fix(t,dp),dzS=fix(dz,dp),dxS=fix(dx,dp),Ds=fix(D,dp),Zcs=fix(Zc,dp),Rs=fix(R,dp);
- const X1=fix(Number(Ds)-Number(dxS),dp),Z1=fix(Number(Zcs)+Number(dzS),dp),X3=Ds,Z3=fix(Number(Zcs)-Number(tS),dp);
- const startX=D-2*Math.abs(Zc)*Math.tan(rad(A)),startZ=0;
- const warn=[];
- if(Zc<=1e-12&&+Z1>1e-12)warn.push("The G01 point is at Z+"+word(+Z1,dp)+" – in front of Z0. The chamfer is shorter than the blend needs. Lengthen the chamfer or use a smaller R.");
- if(startX<=1e-12&&Zc<0)throw"Chamfer would run through the centreline (start X "+fix(startX,dp)+")";
- let Zend=i.Zend,zEndS=null,zEnd=null;
- if(Zend!=null&&Zend!==""&&isFinite(+Zend)){
-  zEnd=+Zend;
-  if(zEnd>+Z3+1e-12)throw"Final Z must be at or past the arc end Z"+Z3+" (toward the chuck, more negative)";
+ const X1=fix(x1e,dp),Z1=fix(z1e,dp),X3=Ds,Z3=fix(z3e,dp);
+ let startX,startZ;
+ if(square){startX=D-dx;startZ=Zc;}
+ else{startX=D-2*Math.abs(Zdraw)*Math.tan(rad(A));startZ=0;}
+ if(!square&&startX<=1e-12&&Zdraw<0)throw"Chamfer would run through the centreline (start X "+fix(startX,dp)+")";
+ // t longer than the chamfer: G01 would be in front of Z0 (not used for a 90° face, which does not consume Z toward Z0)
+ if(!square&&z1e>1e-12)throw"The blend needs a longer chamfer: the G01 point would be at Z+"+word(z1e,dp)+" (in front of Z0). Lengthen the chamfer or use a smaller R.";
+ let Zend=i.Zend,zEndS=null,zEnd=null,placeholderZ=true;
+ if(Zend!=null&&Zend!==""){
+  zEnd=parseNum(Zend);if(!isFinite(zEnd))throw"Enter a valid final Z, or leave it blank";
+  if(zEnd>z3e+1e-12)throw"Final Z must be at or past the arc end Z"+Z3+" (toward the chuck, more negative)";
   zEndS=fix(zEnd,dp);
+  placeholderZ=false;
  }
- const prog="G01 X"+word(+X1,dp)+" Z"+word(+Z1,dp)+"\nG03 X"+word(+X3,dp)+" Z"+word(+Z3,dp)+" R"+word(+Rs,dp)+(zEndS!=null?"\nG01 Z"+word(+zEndS,dp):"");
- return{units,dp,D,Zc,A,R,t,dz,dx,tS,dzS,dxS,Ds,Zcs,Rs,X1,Z1,X3,Z3,startX,startZ,startXs:fix(startX,dp),
-  chamferEnd:{x:D-dx,z:Zc+dz},arcEnd:{x:D,z:Zc-t},centre:{r:D/2-R,z:Zc-t},corner:{x:D,z:Zc},
-  prog,zEnd,zEndS,warn};
+ const prog="G01 X"+word(+X1,dp)+" Z"+word(+Z1,dp)+"\nG03 X"+word(+X3,dp)+" Z"+word(+Z3,dp)+" R"+word(+Rs,dp)+"\nG01 Z"+(placeholderZ?"...":word(+zEndS,dp));
+ return{units,dp,D,Zc,Zdraw,A,R,t,dz,dx,x1e,z1e,z3e,tS,dzS,dxS,Ds,Zcs,Rs,X1,Z1,X3,Z3,startX,startZ,startXs:fix(startX,dp),startZs:fix(startZ,dp),
+  chamferEnd:{x:x1e,z:z1e},arcEnd:{x:D,z:z3e},centre:{r:D/2-R,z:z3e},corner:{x:D,z:Zc},
+  prog,zEnd,zEndS,placeholderZ,shiftOn,shift,rTnr,shiftS:fix(shift,dp),ZdrawS:fix(Zdraw,dp),square,warn:[]};
 }
-if(typeof module!=="undefined")module.exports={solve,fix,word,dpOf};
+if(typeof module!=="undefined")module.exports={solve,fix,word,dpOf,exact,tipShift,parseNum};
 if(typeof document!=="undefined"){
 const $=id=>document.getElementById(id);
-function setMode(){const len=$("mode").value==="len";$("ll").hidden=!len;$("zl").hidden=len}
+function setMode(){const len=$("mode").value==="len",sh=$("shift").checked;$("ll").hidden=!len;$("zl").hidden=len;$("rl").hidden=!sh;
+ $("llcap").textContent=sh?"Drawing chamfer Z length (from Z0)":"Chamfer Z length (from Z0)";
+ $("zlcap").textContent=sh?"Drawing corner Z (must be 0 or negative)":"Corner Z (must be 0 or negative)"}
 function draw(q){const s=$("svg");if(!q){s.innerHTML="";return}
  const rD=q.D/2,r1=q.chamferEnd.x/2,z1=q.chamferEnd.z,z3=q.arcEnd.z,zc=q.Zc,cr=q.centre.r,cz=q.centre.z,Aa=rad(q.A);
  const along=Math.max(q.t*2.8,q.R*2.2,Math.abs(z1)*0.15,0.25);
  let zFront=z1+along*Math.cos(Aa),rFront=r1-along*Math.sin(Aa);
- if(zc<=1e-12&&zFront>0){zFront=0;rFront=rD-Math.abs(zc)*Math.tan(Aa)}
+ if(q.A<89.999&&zc<=1e-12&&zFront>0){zFront=0;rFront=rD-Math.abs(zc)*Math.tan(Aa)}
  if(rFront<0){const k=r1/(Math.sin(Aa)||1e-9);zFront=z1+Math.min(along,k)*Math.cos(Aa);rFront=Math.max(0,r1-Math.min(along,k)*Math.sin(Aa))}
  const zBack=z3-Math.max(q.t*2.2,q.R*1.8,(zFront-z3)*0.4);
  const rPad=Math.max(q.R*0.7,(rD-Math.min(rFront,r1,cr))*0.35, (rD)*0.01);
@@ -122,37 +147,45 @@ function draw(q){const s=$("svg");if(!q){s.innerHTML="";return}
  h+=T(20,248,"← chuck   (corner detail)","#555","start");
  s.innerHTML=h}
 
-function calc(){$("err").textContent="";const u=$("u").value,mode=$("mode").value,p=k=>parseFloat($(k).value);
- try{const q=solve({units:u,mode,D:p("D"),L:$("L").value===""?null:p("L"),Zc:$("Zc").value===""?null:p("Zc"),A:p("A"),R:p("R"),Zend:$("Zend").value===""?null:p("Zend")});
+function calc(){$("err").textContent="";const u=$("u").value,mode=$("mode").value,p=k=>parseNum($(k).value);
+ try{const q=solve({units:u,mode,D:p("D"),L:$("L").value===""?null:p("L"),Zc:$("Zc").value.trim()===""?null:p("Zc"),A:p("A"),R:p("R"),Zend:$("Zend").value.trim()===""?null:$("Zend").value,shift:$("shift").checked,tnr:$("tnr").value===""?null:p("tnr")});
   $("out").hidden=false;$("to").textContent=q.tS;$("zo").textContent=q.dzS;$("xo").textContent=q.dxS;
-  const w=q.warn.map(t=>`<div class="w">⚠ ${t}</div>`).join("");
-  $("res").innerHTML=`<pre id="prog">${q.prog}</pre><button type="button" id="copy">Copy program</button>`+w+
-   `<div style="margin-top:8px"><b>Points (X = diameter)</b><br>`+
-   `Chamfer start at Z0: X${q.startXs} Z${fix(0,q.dp)}<br>`+
-   `Sharp corner: X${q.Ds} Z${q.Zcs}<br>`+
-   `G01 chamfer end: X${q.X1} Z${q.Z1}<br>`+
-   `G03 arc end: X${q.X3} Z${q.Z3} R${q.Rs}`+(q.zEndS!=null?`<br>G01 along OD to Z${q.zEndS}`:"")+`</div>`+
-   `<p class="n" style="margin:8px 0 0">Units: ${q.units==="in"?"inch (4 decimals)":"mm (3 decimals)"}. Rounded t, Z change and X change are applied to D and the corner Z so the sums match the program.</p>`;
+  const W=v=>word(+v,q.dp);
+  const startLine=q.square?`Square step (face) at Z${W(q.Zcs)}: G01 is on the face at X${W(q.X1)}<br>`:`Chamfer start at Z0: X${W(q.startX)} Z${W(0)}<br>`;
+  const shiftLine=q.shiftOn?`Drawing corner: Z${W(q.Zdraw)}<br>Tip-path corner: Z${W(q.Zdraw)} − ${W(q.shift)} = Z${W(q.Zc)} &nbsp; (r ${W(q.rTnr)} × (1 − tan(A/2)))<br>`:"";
+  $("res").innerHTML=`<pre id="prog">${q.prog}</pre><button type="button" id="copy">Copy program</button>`+
+   (q.placeholderZ?`<p class="n" style="margin:6px 0 0">Replace <b>Z...</b> with the Z along the OD toward the chuck before you run it. After an arc the next straight move always has G01.</p>`:"")+
+   `<div style="margin-top:8px"><b>Points (X = diameter) · OD only (G03). On a bore use G02.</b><br>`+
+   startLine+shiftLine+
+   `${q.shiftOn?"Tip-path":"Sharp"} corner: X${W(q.D)} Z${W(q.Zc)}<br>`+
+   `G01 chamfer end: X${W(q.X1)} Z${W(q.Z1)}<br>`+
+   `G03 arc end: X${W(q.X3)} Z${W(q.Z3)} R${W(q.R)}`+(q.zEndS!=null?`<br>G01 along OD to Z${W(q.zEndS)}`:`<br>G01 Z... (enter Final Z)`)+`</div>`+
+   `<p class="n" style="margin:8px 0 0">Units: ${q.units==="in"?"inch (4 decimals)":"mm (3 decimals)"}. End points are computed exactly, then rounded once for the program.</p>`;
   $("fm").hidden=false;
-  $("fm").innerHTML=`t = R × tan(A/2) = ${word(q.R,q.dp)} × tan(${(+q.A)}° / 2) = ${q.tS}<br>`+
+  const book=q.units==="in"&&Math.abs(q.D-1.2)<1e-9&&Math.abs(q.A-45)<1e-9&&Math.abs(q.R-0.0156)<1e-12&&Math.abs(q.Zc+0.0842)<5e-5;
+  $("fm").innerHTML=`t = R × tan(A/2) = ${W(q.R)} × tan(${(+q.A)}° / 2) = ${q.tS}<br>`+
    `Z change = t × cos(A) = ${q.dzS} (toward +Z)<br>`+
    `X change (Ø) = 2 × t × sin(A) = ${q.dxS}<br>`+
-   `G01: X${q.Ds} − ${q.dxS} = ${q.X1}, &nbsp; Z${q.Zcs} + ${q.dzS} = ${q.Z1}<br>`+
-   `G03: X${q.Ds}, &nbsp; Z${q.Zcs} − ${q.tS} = ${q.Z3}, &nbsp; R${q.Rs}`+
-   `<div class="n" style="margin-top:6px">For a 45° chamfer, t = R × tan(22.5°) = R × 0.4142, Z change = R × 0.2929, and the X change on diameter is 2 × the Z change (before rounding).</div>`;
+   (q.shiftOn?`TNR shift G = r(1 − tan(A/2)) = ${W(q.shift)} &nbsp; (45°: 0.586r). Tip-path Z = ${W(q.Zdraw)} − ${W(q.shift)} = ${W(q.Zc)}<br>`:"")+
+   `G01: X${W(q.X1)} Z${W(q.Z1)} &nbsp; (exact X${exact(q.x1e,q.dp)}, Z${exact(q.z1e,q.dp)})<br>`+
+   `G03: X${W(q.X3)} Z${W(q.Z3)} R${W(q.R)} &nbsp; (exact Z${exact(q.z3e,q.dp)})`+
+   (book?`<div class="n" style="margin-top:6px">The book prints N67 as Z−0.0906, which is 0.0001 off the exact ${exact(q.z3e,q.dp)} (this page rounds it to Z${W(q.Z3)}).</div>`:"")+
+   `<div class="n" style="margin-top:6px">For a 45° chamfer, t = R × tan(22.5°) = R × 0.4142, Z change = R × 0.2929, and the X change on diameter is 2 × the Z change (before rounding). A = 90° is a square step: t = R, the arc goes from the face to the OD. Angle A is from the Z axis, so 30° from the face is 60° here.</div>`;
   $("copy").onclick=()=>{navigator.clipboard.writeText(q.prog).then(()=>{$("copy").textContent="Copied";setTimeout(()=>$("copy").textContent="Copy program",1200)})};
   draw(q);
-  try{localStorage.setItem("chamfer",JSON.stringify({u,mode,D:$("D").value,L:$("L").value,Zc:$("Zc").value,A:$("A").value,R:$("R").value,Zend:$("Zend").value}))}catch(e){}}
+  try{localStorage.setItem("chamfer",JSON.stringify({u,mode,D:$("D").value,L:$("L").value,Zc:$("Zc").value,A:$("A").value,R:$("R").value,Zend:$("Zend").value,shift:$("shift").checked,tnr:$("tnr").value}))}catch(e){}}
  catch(e){$("err").textContent=e;$("out").hidden=true;$("res").innerHTML="";$("fm").hidden=true;draw(null)}}
-function loadMetric(){$("u").value="mm";$("mode").value="len";$("D").value="80";$("L").value="1";$("Zc").value="";$("A").value="45";$("R").value="0.8";$("Zend").value="";setMode();calc()}
-function loadManual(){$("u").value="in";$("mode").value="zc";$("D").value="1.2";$("L").value="";$("Zc").value="-0.0842";$("A").value="45";$("R").value="0.0156";$("Zend").value="-1.125";setMode();calc()}
-function clearAll(){["D","L","Zc","A","R","Zend"].forEach(k=>$(k).value="");$("err").textContent="";$("out").hidden=true;$("res").innerHTML="";$("fm").hidden=true;draw(null);try{localStorage.removeItem("chamfer")}catch(e){}}
-$("mode").onchange=()=>{setMode();calc()};$("u").onchange=()=>calc();
-["D","L","Zc","A","R","Zend"].forEach(k=>$(k).oninput=()=>calc());
+function loadMetric(){$("u").value="mm";$("mode").value="len";$("D").value="80";$("L").value="1";$("Zc").value="";$("A").value="45";$("R").value="0.8";$("Zend").value="";$("shift").checked=false;$("tnr").value="";setMode();calc()}
+function loadManual(){$("u").value="in";$("mode").value="zc";$("D").value="1.2";$("L").value="";$("Zc").value="-0.0842";$("A").value="45";$("R").value="0.0156";$("Zend").value="-1.125";$("shift").checked=false;$("tnr").value="";setMode();calc()}
+function clearAll(){["D","L","Zc","A","R","Zend","tnr"].forEach(k=>$(k).value="");$("shift").checked=false;$("err").textContent="";$("out").hidden=true;$("res").innerHTML="";$("fm").hidden=true;draw(null);try{localStorage.removeItem("chamfer")}catch(e){}}
+function flipSign(id){const el=$(id);let v=String(el.value||"").trim().replace(/[−–—]/g,"-");if(v===""||v==="-"){el.value="-";el.focus();calc();return}el.value=v.charAt(0)==="-"?v.slice(1):"-"+v;calc()}
+$("zcsgn").onclick=()=>flipSign("Zc");$("zendsgn").onclick=()=>flipSign("Zend");
+$("mode").onchange=()=>{setMode();calc()};$("u").onchange=()=>calc();$("shift").onchange=()=>{setMode();calc()};
+["D","L","Zc","A","R","Zend","tnr"].forEach(k=>$(k).oninput=()=>calc());
 $("def").onclick=loadMetric;$("man").onclick=loadManual;$("clr").onclick=clearAll;
 setMode();
 try{const s=JSON.parse(localStorage.getItem("chamfer")||"null");if(s){if(s.u==="mm"||s.u==="in")$("u").value=s.u;if(s.mode==="len"||s.mode==="zc")$("mode").value=s.mode;
- ["D","L","Zc","A","R","Zend"].forEach(k=>{if(s[k]!=null)$(k).value=s[k]});setMode()}}catch(e){}
+ ["D","L","Zc","A","R","Zend","tnr"].forEach(k=>{if(s[k]!=null)$(k).value=s[k]});$("shift").checked=!!s.shift;setMode()}}catch(e){}
 calc();
 }
 </script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script></body></html>
