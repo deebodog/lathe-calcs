@@ -98,7 +98,7 @@ h2{font-size:1.05em;margin:16px 0 6px}
 .g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
 label{min-width:0;font-size:.9em;display:flex;flex-direction:column;gap:4px}
 label.f{grid-column:1/-1}
-input,select{
+input:not([type=checkbox]):not([type=range]),select{
   width:100%;
   max-width:100%;
   min-width:0;
@@ -113,13 +113,22 @@ input,select{
 }
 input.calc{background:#E6F4EA}
 input[type=checkbox]{
-  width:28px;
-  height:28px;
-  min-width:28px;
-  min-height:28px;
-  padding:0;
+  width:28px !important;
+  height:28px !important;
+  min-width:28px !important;
+  min-height:28px !important;
+  padding:0 !important;
   margin:0;
+  flex:none;
   accent-color:var(--blue);
+}
+label.chk,.chk{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:8px;
+  min-height:48px;
+  font-size:.9em;
 }
 input[type=range]{
   padding:0;
@@ -135,7 +144,8 @@ input:focus,select:focus,input[type=range]:focus{
 }
 .st{display:flex;gap:6px;align-items:stretch}
 .st button,.st button.sgn,
-#xm,#xp,#dn,#up,#zcsgn,#zendsgn{
+button#xm,button#xp,button#dn,button#up,
+#zcsgn,#zendsgn{
   flex:none;
   width:52px;
   min-width:48px;
@@ -192,6 +202,8 @@ pre,#res pre,.res pre{
   border-radius:8px;
   margin:0;
   overflow-x:auto;
+  overflow-wrap:anywhere;
+  white-space:pre-wrap;
   -webkit-overflow-scrolling:touch;
 }
 #copy,.copy{
@@ -255,6 +267,12 @@ tbody tr{cursor:pointer}
 /* Links and home cards */
 a{color:var(--blue);font-weight:600}
 a:focus-visible{outline:3px solid var(--steel);outline-offset:2px}
+body>p a{
+  display:inline-flex;
+  align-items:center;
+  min-height:48px;
+  padding:8px 4px 8px 0;
+}
 .hint{font-size:.85em;color:var(--muted);margin:16px 0 0}
 .cards{
   display:grid;

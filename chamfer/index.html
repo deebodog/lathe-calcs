@@ -11,7 +11,7 @@
 <label>Chamfer angle A° from Z<input id="A" type="number" inputmode="decimal" step="any" value="45"><span class="n" style="margin-top:2px">Measured from the Z axis (0° = along Z, 90° = a face). So 30° from the face is 60° here.</span></label>
 <label>Blend radius R<input id="R" type="number" inputmode="decimal" step="any" value="0.8"></label>
 <label class="f">Final Z on the diameter<div class="st"><button type="button" class="sgn" id="zendsgn" aria-label="toggle final Z sign">+/−</button><input id="Zend" type="text" inputmode="text" enterkeyhint="done" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="e.g. -1.125, or leave blank for G01 Z..."></div><span class="n" style="margin-top:2px">The G01 after the arc always appears. Fill this in for the move along the OD toward the chuck, or leave it blank and replace Z... in the program. Use +/− if your keypad has no minus.</span></label>
-<label class="f" style="flex-direction:row;align-items:center;gap:8px;display:flex"><input id="shift" type="checkbox" style="width:auto;min-width:0;padding:0;margin:0">Shift for manual nose-radius comp</label>
+<label class="f" style="flex-direction:row;align-items:center;gap:8px;display:flex"><input id="shift" type="checkbox">Shift for manual nose-radius comp</label>
 <label id="rl" hidden>Nose radius r (blank = blend R)<input id="tnr" type="number" inputmode="decimal" step="any"></label>
 </div>
 <p class="n"><b>OD only.</b> This is for a chamfer rolling onto an outside diameter, tool cutting toward the chuck (−Z). On a bore the same blend is <b>G02</b>, not G03. R is the part blend radius. Start from the sharp corner where the chamfer meets the diameter. A = 90° is a square step (a face into the OD).</p>
