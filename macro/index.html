@@ -1,12 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Adam's Macro B Templates</title>
-<style>*{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0 auto;padding:12px;background:#f3f5f8;color:#222;max-width:560px}h1{font-size:1.2em;margin:0}
-button{max-width:100%;min-width:0;font-size:1.1em;padding:10px;border:1px solid #aab;border-radius:8px}
-.res{background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-family:monospace}
-pre{font-size:1.15em;background:#eef;padding:6px;border-radius:6px;margin:0;overflow:auto}
-.copy{background:#1565c0;color:#fff;border:0;margin-top:8px;width:auto;padding:8px 14px;font-size:.95em}
-.n{font-size:.9em;margin:18px 0 0}</style>
-<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1565c0"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
-<header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1>Adam's Macro B Templates</h1><div style="font-size:.8em;color:#555">Leicester, England</div></div></header>
+<link rel="stylesheet" href="app.css">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#003A8C"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
+<header class="top"><a class="brand" href="../" aria-label="Lathe Calcs home"><span class="mark" aria-hidden="true"></span><span class="wordmark">Lathe Calcs</span></a><div class="pagehead"><h1>Adam's Macro B Templates</h1><div class="sub"><svg class="flag" width="24" height="12" viewBox="0 0 60 30" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg> Leicester, England</div></div></header>
 <p class="n">The main sets the arguments and calls the sub.</p>
 <div class="res"><pre id="p1">%
 O8001 (PART FAMILY CALLER)
@@ -122,7 +117,7 @@ M30
 N901 #3000=1(ARGUMENT MISSING)
 N902 #3000=2(DIA OR DOC OUT OF RANGE)
 %</pre><button type="button" class="copy" data-src="p4">Copy</button></div>
-<p style="font-size:.85em;margin-top:16px"><a href="../" style="color:#1565c0">Home</a></p>
+<p style="font-size:.85em;margin-top:16px"><a href="../" style="color:#003A8C">Home</a></p>
 <script>
 function copyText(t,b){const done=()=>{b.textContent="Copied";setTimeout(()=>b.textContent="Copy",1200)};const fb=()=>{const a=document.createElement("textarea");a.value=t;a.readOnly=true;a.style.position="fixed";a.style.left="-9999px";document.body.appendChild(a);a.select();try{document.execCommand("copy")}finally{document.body.removeChild(a)}done()};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(fb);else fb()}
 document.querySelectorAll(".copy").forEach(b=>{b.onclick=()=>copyText(document.getElementById(b.dataset.src).textContent.trim(),b)});
