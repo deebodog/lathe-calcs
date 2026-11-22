@@ -6,16 +6,18 @@ button{background:#1565c0;color:#fff;border:0;margin-top:10px;width:48%}#clr{bac
 #err{color:#c62828;font-weight:bold;min-height:1.2em}
 #res{background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-family:monospace}
 pre{font-size:1.15em;background:#eef;padding:6px;border-radius:6px;margin:0}
-svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}
-a{color:#1565c0}</style>
+svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1565c0"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
 <header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1>Adam's OD Spherical Radius</h1><div style="font-size:.8em;color:#555">Leicester, England</div></div></header>
 <div class="g">
 <label>Sphere Ø<input id="D" type="number" inputmode="decimal" step="any"></label>
 <label>Centre Z<input id="zc" type="number" inputmode="decimal" step="any"></label>
-<label>Band start Z<input id="zs" type="number" inputmode="decimal" step="any"></label>
-<label>Band end Z<input id="ze" type="number" inputmode="decimal" step="any"></label>
-<label>Run-out each end<input id="ro" type="number" inputmode="decimal" step="0.1" min="0"></label>
+<label>Upper tol +<input id="up" type="number" inputmode="decimal" step="any"></label>
+<label>Lower tol −<input id="lo" type="number" inputmode="decimal" step="any"></label>
+<label>Part width<input id="L" type="number" inputmode="decimal" step="any"></label>
+<label>Spigot Ø<input id="sp" type="number" inputmode="decimal" step="any"></label>
+<label>Band width<input id="w" type="number" inputmode="decimal" step="any"></label>
+<label>Edge chamfer<input id="ch" type="number" inputmode="decimal" step="any"></label>
 </div>
 <button type="button" id="go">Calculate</button> <button type="button" id="clr">Clear</button>
 <div id="err"></div><div id="res"></div>
@@ -23,32 +25,37 @@ a{color:#1565c0}</style>
 <script>
 const W=v=>{const s=(+v.toFixed(3)).toString();return s.includes(".")?s:s+"."};
 function num(v){if(v==null||v==="")return NaN;if(typeof v==="number")return v;const n=Number(String(v).trim().replace(/[−–—]/g,"-"));return n}
-function zNeg(v){const n=num(v);if(!isFinite(n))return NaN;return -Math.abs(n)}
-function xAt(SR,zc,z){const dz=z-zc,h=SR*SR-dz*dz;if(h<-1e-12)throw"Z"+W(z)+" is outside the sphere";return 2*Math.sqrt(Math.max(0,h))}
+function xAt(SR,zc,z){const h=SR*SR-(z-zc)*(z-zc);if(h<-1e-12)throw"Z"+W(z)+" is outside the sphere";return 2*Math.sqrt(Math.max(0,h))}
 function solve(i){
- const D=num(i.D);
+ const D=num(i.D),up=Math.abs(num(i.up)||0),lo=Math.abs(num(i.lo)||0);
  if(!(D>0))throw"Sphere Ø must be more than 0";
- const SR=D/2;
- let ro=i.ro;if(ro==null||ro===""||(typeof ro==="number"&&isNaN(ro)))ro=1;else ro=num(ro);
- if(!isFinite(ro)||ro<0)throw"Run-out must be 0 or more";
- const zc=zNeg(i.zc),zbS=zNeg(i.zs),zbE=zNeg(i.ze);
- if(!isFinite(zc))throw"Enter the centre Z";
- if(!isFinite(zbS))throw"Enter the band start Z";
- if(!isFinite(zbE))throw"Enter the band end Z";
- if(zbS<=zbE+1e-12)throw"Band start Z must be in front of band end Z (nearer Z0)";
- const zs=zbS+ro,ze=zbE-ro;
- const xs=xAt(SR,zc,zs),xe=xAt(SR,zc,ze),edgeS=xAt(SR,zc,zbS),edgeE=xAt(SR,zc,zbE);
- const prog="G00 X"+W(xs)+" Z"+W(zs)+"\nG03 X"+W(xe)+" Z"+W(ze)+" R"+W(SR);
- return{D,SR,zc,zbS,zbE,ro,zs,ze,xs,xe,edgeS,edgeE,peak:D,prog};
+ const mean=D+(up-lo)/2,SR=mean/2;
+ if(!(mean>0))throw"Mean sphere Ø must be more than 0";
+ const L=num(i.L),sp=num(i.sp),w=num(i.w),ch=num(i.ch);
+ if(!(L>0))throw"Part width must be more than 0";
+ if(!(sp>0))throw"Spigot Ø must be more than 0";
+ if(!(w>0))throw"Band width must be more than 0";
+ if(!isFinite(ch)||ch<0)throw"Edge chamfer must be 0 or more";
+ if(ch>=w/2-1e-12)throw"Edge chamfer must be less than half the band width";
+ if(w>L+1e-12)throw"Band width must not be longer than the part";
+ let zc=num(i.zc);if(!isFinite(zc))throw"Enter the centre Z";zc=-Math.abs(zc);
+ const zbS=zc+w/2,zbE=zc-w/2;
+ if(zbS>1e-9||zbE<-L-1e-9)throw"The band is outside the part (Z0 to Z-"+W(L)+")";
+ const zs=zbS+ch,ze=zbE-ch;
+ if(zs>1e-9||ze<-L-1e-9)throw"Start or end Z is outside the part (Z0 to Z-"+W(L)+")";
+ const xs=xAt(SR,zc,zs),xe=xAt(SR,zc,ze);
+ if(!(xs>sp+1e-12)||!(xe>sp+1e-12))throw"Start or end X is not above the spigot Ø"+W(sp);
+ const prog="G01 X"+W(xs)+" Z"+W(zs)+"\nG03 X"+W(xe)+" Z"+W(ze)+" R"+W(SR);
+ return{D,up,lo,mean,SR,L,sp,w,ch,zc,zbS,zbE,zs,ze,xs,xe,prog};
 }
 if(typeof module!=="undefined")module.exports={solve,W};
 else{
 const $=id=>document.getElementById(id);
 function draw(r){if(!r){$("svg").innerHTML="";return}
- const x0=300,x1=20,z0=Math.max(0,r.zs)+Math.max(r.ro,2),z1=r.ze-Math.max(r.ro,2);
+ const x0=300,x1=20,z0=Math.max(0,r.zs)+Math.max(r.ch,2),z1=Math.min(-r.L,r.ze)-Math.max(r.ch,2);
  const sc=(x0-x1)/Math.max(z0-z1,1e-9),px=z=>x0-(z0-z)*sc;
- const rHi=r.SR,rLo=Math.min(r.xs,r.xe,r.edgeS,r.edgeE)/2;
- const pad=Math.max((rHi-rLo)*0.5,1.2),rMin=rLo-pad,rMax=rHi+pad*0.4;
+ const rHi=r.SR,rLo=Math.min(r.xs,r.xe,r.sp)/2;
+ const pad=Math.max((rHi-rLo)*0.25,2),rMin=rLo-pad,rMax=rHi+pad*0.35;
  const top=22,bot=175,ys=(bot-top)/Math.max(rMax-rMin,1e-9),py=rad=>bot-(rad-rMin)*ys;
  const T=(x,y,t,c,a)=>`<text x="${x}" y="${y}" font-size="11" fill="${c||"#000"}" text-anchor="${a||"middle"}">${t}</text>`;
  const tr=z=>Math.sqrt(Math.max(0,r.SR*r.SR-(z-r.zc)**2));
@@ -56,19 +63,19 @@ function draw(r){if(!r){$("svg").innerHTML="";return}
  for(let i=0;i<=80;i++){const z=r.zbS+(r.zbE-r.zbS)*i/80;crown+=(i?"L":"")+px(z).toFixed(1)+" "+py(tr(z)).toFixed(1)+" "}
  let cut="M"+px(r.zs).toFixed(1)+" "+py(r.xs/2).toFixed(1)+" ";
  for(let i=1;i<=80;i++){const z=r.zs+(r.ze-r.zs)*i/80;cut+="L"+px(z).toFixed(1)+" "+py(tr(z)).toFixed(1)+" "}
- let s=`<path d="M${px(r.zs).toFixed(1)} ${py(r.xs/2).toFixed(1)} L${px(r.zbS).toFixed(1)} ${py(r.xs/2).toFixed(1)} L${px(r.zbS).toFixed(1)} ${py(r.edgeS/2).toFixed(1)} L${crown}L${px(r.zbE).toFixed(1)} ${py(r.xe/2).toFixed(1)} L${px(r.ze).toFixed(1)} ${py(r.xe/2).toFixed(1)} L${px(r.ze).toFixed(1)} ${bot+8} L${px(r.zs).toFixed(1)} ${bot+8}Z" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>`;
+ let s=`<path d="M${px(0).toFixed(1)} ${py(r.sp/2).toFixed(1)} L${px(r.zbS).toFixed(1)} ${py(r.sp/2).toFixed(1)} L${px(r.zbS).toFixed(1)} ${py(tr(r.zbS)).toFixed(1)} L${crown}L${px(r.zbE).toFixed(1)} ${py(r.sp/2).toFixed(1)} L${px(-r.L).toFixed(1)} ${py(r.sp/2).toFixed(1)} L${px(-r.L).toFixed(1)} ${bot+8} L${px(0).toFixed(1)} ${bot+8}Z" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>`;
  s+=`<path d="${cut}" fill="none" stroke="#2e7d32" stroke-width="2.5"/>`;
  s+=`<circle cx="${px(r.zs)}" cy="${py(r.xs/2)}" r="4" fill="#2e7d32"/>`+T(px(r.zs),py(r.xs/2)+16,"Z"+W(r.zs),"#2e7d32");
  s+=`<circle cx="${px(r.ze)}" cy="${py(r.xe/2)}" r="4" fill="#2e7d32"/>`+T(px(r.ze),py(r.xe/2)+16,"Z"+W(r.ze),"#2e7d32");
- s+=T(px(r.zc),py(r.SR)-8,"Ø"+W(r.peak),"#0d47a1");
+ s+=T(px(r.zc),py(r.SR)-8,"Ø"+W(r.mean),"#0d47a1");
  if(z0>=-1e-9&&z1<=1e-9)s+=`<line x1="${px(0)}" y1="10" x2="${px(0)}" y2="${bot+8}" stroke="#c62828" stroke-dasharray="4"/>`+T(px(0),12,"Z0","#c62828","end");
  s+=T(20,214,"← chuck","#555","start");
  $("svg").innerHTML=s;}
 function calc(){$("err").textContent="";
- try{const r=solve({D:$("D").value,zc:$("zc").value,zs:$("zs").value,ze:$("ze").value,ro:$("ro").value});
+ try{const r=solve({D:$("D").value,up:$("up").value,lo:$("lo").value,L:$("L").value,sp:$("sp").value,w:$("w").value,ch:$("ch").value,zc:$("zc").value});
   $("res").innerHTML="<pre>"+r.prog+"</pre>";draw(r)}
  catch(e){$("err").textContent=e;$("res").innerHTML="";draw(null)}}
 $("go").onclick=calc;
-$("clr").onclick=()=>{["D","zc","zs","ze","ro"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
-$("D").value=169.89;$("zc").value=-30;$("zs").value=-7;$("ze").value=-53;$("ro").value=1;calc();}
+$("clr").onclick=()=>{["D","up","lo","L","sp","w","ch","zc"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
+$("D").value=169.91;$("up").value=0;$("lo").value=0.04;$("L").value=60;$("sp").value=145;$("w").value=46;$("ch").value=0.5;$("zc").value=-30;calc();}
 </script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script></body></html>
