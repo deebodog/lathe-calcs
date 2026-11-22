@@ -2,6 +2,7 @@
 <link rel="stylesheet" href="app.css">
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#003A8C"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="icon" href="icon-192.png" sizes="192x192"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
 <header class="top"><a class="brand" href="../" aria-label="Lathe Calcs home"><span class="mark" aria-hidden="true"></span><span class="wordmark">Lathe Calcs</span></a><div class="pagehead"><h1>Adam's Macro B Templates</h1><div class="sub"><svg class="flag" width="24" height="12" viewBox="0 0 60 30" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg> Leicester, England</div></div></header>
+<p class="n">O8000, O8001 and O8003 are Haas. O8004 and O8005 are Fanuc.</p>
 <p class="n">The main sets the arguments and calls the sub.</p>
 <div class="res"><pre id="p1">%
 O8001 (PART FAMILY CALLER)
@@ -117,6 +118,67 @@ M30
 N901 #3000=1(ARGUMENT MISSING)
 N902 #3000=2(DIA OR DOC OUT OF RANGE)
 %</pre><button type="button" class="copy" data-src="p4">Copy</button></div>
+<p class="n">Fanuc facing example, with a two-block G72.</p>
+<div class="res"><pre id="p5">%
+O8005 (PART FAMILY CALLER)
+(FANUC)
+G0 G40 G80 G99
+G28 U0.
+G28 W0.
+G50 S1800
+G0 T0101
+G96 S200 M3
+Z50.
+G65 P8004 B118. H1. Q2. X36.
+M30
+%
+O8004 (PART FAMILY SUB)
+(FANUC)
+(CALLED BY O8005)
+(B#2  CLEAR DIA OVER DIAMOND POINTS - 118.)
+(Q#17 STOCK ON EACH OP1 FACE - 2.)
+(X#24 FLAME CUT HOLE DIA - 36.)
+(H#11 OP SELECT)
+(S#19 START FROM TOOL NO - OPTIONAL)
+(--- CHECK ARGUMENTS ---)
+IF[#2EQ#0]GOTO901
+IF[#11EQ#0]GOTO901
+IF[#17EQ#0]GOTO901
+IF[#24EQ#0]GOTO901
+IF[#11NE1.]GOTO902
+IF[#2LE0.]GOTO903
+IF[#17LE0.]GOTO903
+IF[#24LE0.]GOTO903
+IF[#2LE#24]GOTO903
+(S DEFAULTS TO 1 IF LEFT OUT)
+IF[#19NE#0]GOTO50
+#19=1.
+N50
+IF[#19GT1.]GOTO910
+G0 G40 G80 G99
+G28 U0.
+G28 W0.
+G50 S1800
+G0 T0101
+G96 S200 M3
+Z50.
+G0 X#2
+G0 Z[#17+.5] M8
+G72 W2. R.5
+G72 P100 Q200 U0. W.2 F.25
+N100 G0 Z0.
+N200 G1 X[#24-4.] F.15
+G70 P100 Q200
+G0 U2.
+G0 Z50.
+G28 U0. M9
+G28 W0. M5
+M99
+N901 #3000=1(ARGUMENT MISSING)
+N902 #3000=2(THIS EXAMPLE ONLY HAS OP H1)
+N903 #3000=3(DIA OR STOCK OUT OF RANGE)
+N910 #3000=10(START TOOL NO TOO HIGH FOR OP)
+%</pre><button type="button" class="copy" data-src="p5">Copy</button></div>
 <p style="font-size:.85em;margin-top:16px"><a href="../" style="color:#003A8C">Home</a></p>
 <script>
 function copyText(t,b){const done=()=>{b.textContent="Copied";setTimeout(()=>b.textContent="Copy",1200)};const fb=()=>{const a=document.createElement("textarea");a.value=t;a.readOnly=true;a.style.position="fixed";a.style.left="-9999px";document.body.appendChild(a);a.select();try{document.execCommand("copy")}finally{document.body.removeChild(a)}done()};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(fb);else fb()}
