@@ -19,6 +19,7 @@ svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#ff
 <button id="go">Calculate</button> <button id="clr">Clear</button>
 <div id="err"></div><div id="res"></div>
 <svg id="svg" viewBox="0 0 320 290"></svg>
+<p style="font-size:.85em;margin-top:16px"><a href="../sphere-od/" style="color:#1565c0">OD spherical crown calculator</a></p>
 <script>
 const X=v=>{const s=(+v.toFixed(3)).toString();return s.includes(".")?s:s+"."},Z3=v=>(Math.abs(v)<5e-4?0:v).toFixed(3);
 function core(i){let {SR,D,L,zc,w,shape}=i;shape=shape||"convex";
