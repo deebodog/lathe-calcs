@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Adam's Sphere Pre-chamfer</title>
+<style>*{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0 auto;padding:12px;background:#f3f5f8;color:#222;max-width:560px}h1{font-size:1.2em;margin:0}
+.g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}label{min-width:0;font-size:.9em;display:flex;flex-direction:column}
+input,button{max-width:100%;min-width:0;font-size:1.1em;padding:10px;border:1px solid #aab;border-radius:8px}input{width:100%}
+button{background:#1565c0;color:#fff;border:0;margin-top:10px;width:48%}#clr{background:#777}
+#err{color:#c62828;font-weight:bold;min-height:1.2em}
+#res{background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-family:monospace}
+pre{font-size:1.15em;background:#eef;padding:6px;border-radius:6px;margin:0}
+svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}</style>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1565c0"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
+<header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1>Adam's Sphere Pre-chamfer</h1><div style="font-size:.8em;color:#555">Leicester, England</div></div></header>
+<div class="g">
+<label>Turned OD<input id="OD" type="number" inputmode="decimal" step="any"></label>
+<label>Sphere Ø<input id="D" type="number" inputmode="decimal" step="any"></label>
+<label>Upper tol +<input id="up" type="number" inputmode="decimal" step="any"></label>
+<label>Lower tol −<input id="lo" type="number" inputmode="decimal" step="any"></label>
+<label>Centre Z<input id="zc" type="number" inputmode="decimal" step="any"></label>
+<label>Band width<input id="w" type="number" inputmode="decimal" step="any"></label>
+<label>Chamfer left<input id="lf" type="number" inputmode="decimal" step="0.1" min="0"></label>
+</div>
+<button type="button" id="go">Calculate</button> <button type="button" id="clr">Clear</button>
+<div id="err"></div><div id="res"></div>
+<svg id="svg" viewBox="0 0 320 220" aria-label="Sphere pre-chamfer"></svg>
+<p style="font-size:.85em;margin-top:16px"><a href="../sphere-od/" style="color:#1565c0">OD spherical radius</a></p>
+<script>
+const W=v=>{const s=(+v.toFixed(3)).toString();return s.includes(".")?s:s+"."};
+function num(v){if(v==null||v==="")return NaN;if(typeof v==="number")return v;const n=Number(String(v).trim().replace(/[−–—]/g,"-"));return n}
+function solve(i){
+ const OD=num(i.OD),D=num(i.D),up=Math.abs(num(i.up)||0),lo=Math.abs(num(i.lo)||0);
+ if(!(OD>0))throw"Turned OD must be more than 0";
+ if(!(D>0))throw"Sphere Ø must be more than 0";
+ const mean=D+(up-lo)/2,SR=mean/2;
+ if(!(mean>0))throw"Mean sphere Ø must be more than 0";
+ const w=num(i.w);
+ let L=i.L;if(L==null||L===""||(typeof L==="number"&&isNaN(L)))L=0.5;else L=num(L);
+ if(!(w>0))throw"Band width must be more than 0";
+ if(!isFinite(L)||L<0)throw"Chamfer left must be 0 or more";
+ if(L>=w/2-1e-12)throw"Chamfer left must be less than half the band width";
+ if(SR<w/2-1e-12)throw"Sphere radius must be at least half the band width";
+ let zc=num(i.zc);if(!isFinite(zc))throw"Enter the centre Z";zc=-Math.abs(zc);
+ const half=w/2,zf=zc+half,zb=zc-half;
+ const De=2*Math.sqrt(Math.max(0,SR*SR-half*half));
+ if(OD<=De+1e-12)throw"Turned OD must be more than the sphere Ø at the band edge (Ø"+W(De)+")";
+ const dz=half-L,r=Math.sqrt(Math.max(0,SR*SR-dz*dz)),Ro=OD/2,c=Ro+L-r;
+ if(c<=1e-12)throw"No chamfer is needed";
+ const Xin=OD-2*c,zMeetF=zf-L,zMeetB=zb+L,zFrontEnd=zf-c,zBackStart=zb+c;
+ const front="G01 X"+W(Xin)+" Z"+W(zf)+"\nG01 X"+W(OD)+" Z"+W(zFrontEnd);
+ const back="G01 X"+W(OD)+" Z"+W(zBackStart)+"\nG01 X"+W(Xin)+" Z"+W(zb);
+ return{OD,D,up,lo,mean,SR,w,L,zc,zf,zb,De,r,c,Ro,Xin,zMeetF,zMeetB,zFrontEnd,zBackStart,meetDia:2*r,front,back,prog:front+"\n"+back};
+}
+if(typeof module!=="undefined")module.exports={solve,W};
+else{
+const $=id=>document.getElementById(id);
+function draw(r){if(!r){$("svg").innerHTML="";return}
+ const padZ=Math.max(r.c,4),z0=r.zf+padZ,z1=r.zb-padZ,x0=300,x1=20,sc=(x0-x1)/Math.max(z0-z1,1e-9),px=z=>x0-(z0-z)*sc;
+ const rLo=r.Xin/2,rHi=Math.max(r.Ro,r.SR),pad=Math.max((rHi-rLo)*0.35,2),rMin=rLo-pad,rMax=rHi+pad*0.35;
+ const top=22,bot=175,ys=(bot-top)/Math.max(rMax-rMin,1e-9),py=rad=>bot-(rad-rMin)*ys;
+ const T=(x,y,t,c,a)=>`<text x="${x}" y="${y}" font-size="11" fill="${c||"#000"}" text-anchor="${a||"middle"}">${t}</text>`;
+ const tr=z=>Math.sqrt(Math.max(0,r.SR*r.SR-(z-r.zc)**2));
+ let s=`<path d="M${px(r.zf).toFixed(1)} ${bot+8} L${px(r.zf).toFixed(1)} ${py(r.Xin/2).toFixed(1)} L${px(r.zFrontEnd).toFixed(1)} ${py(r.Ro).toFixed(1)} L${px(r.zBackStart).toFixed(1)} ${py(r.Ro).toFixed(1)} L${px(r.zb).toFixed(1)} ${py(r.Xin/2).toFixed(1)} L${px(r.zb).toFixed(1)} ${bot+8}Z" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>`;
+ s+=`<path d="M${px(r.zFrontEnd).toFixed(1)} ${py(r.Ro).toFixed(1)} L${px(r.zf).toFixed(1)} ${py(r.Ro).toFixed(1)} L${px(r.zf).toFixed(1)} ${py(r.Xin/2).toFixed(1)}" fill="none" stroke="#90a4ae" stroke-dasharray="4" stroke-width="1.5"/>`;
+ s+=`<path d="M${px(r.zBackStart).toFixed(1)} ${py(r.Ro).toFixed(1)} L${px(r.zb).toFixed(1)} ${py(r.Ro).toFixed(1)} L${px(r.zb).toFixed(1)} ${py(r.Xin/2).toFixed(1)}" fill="none" stroke="#90a4ae" stroke-dasharray="4" stroke-width="1.5"/>`;
+ let arc="M"+px(r.zMeetF).toFixed(1)+" "+py(r.r).toFixed(1)+" ";
+ for(let i=1;i<=80;i++){const z=r.zMeetF+(r.zMeetB-r.zMeetF)*i/80;arc+="L"+px(z).toFixed(1)+" "+py(tr(z)).toFixed(1)+" "}
+ s+=`<path d="${arc}" fill="none" stroke="#2e7d32" stroke-width="2.5"/>`;
+ s+=`<path d="M${px(r.zf).toFixed(1)} ${py(r.Xin/2).toFixed(1)} L${px(r.zMeetF).toFixed(1)} ${py(r.r).toFixed(1)}" fill="none" stroke="#ef6c00" stroke-width="3"/>`;
+ s+=`<path d="M${px(r.zb).toFixed(1)} ${py(r.Xin/2).toFixed(1)} L${px(r.zMeetB).toFixed(1)} ${py(r.r).toFixed(1)}" fill="none" stroke="#ef6c00" stroke-width="3"/>`;
+ s+=`<circle cx="${px(r.zMeetF)}" cy="${py(r.r)}" r="3.5" fill="#ef6c00"/>`;
+ s+=`<circle cx="${px(r.zMeetB)}" cy="${py(r.r)}" r="3.5" fill="#ef6c00"/>`;
+ s+=T(px(r.zc),py(r.Ro)-8,"Ø"+W(r.OD),"#0d47a1");
+ s+=T(px((r.zf+r.zFrontEnd)/2),py(r.Ro)+16,W(r.c)+" x 45°","#1565c0");
+ s+=T(px(r.zMeetF)-4,py(r.r)-10,W(r.L)+" left","#ef6c00");
+ s+=T(px(r.zf),bot+22,"Z"+W(r.zf),"#555");
+ s+=T(px(r.zb),bot+22,"Z"+W(r.zb),"#555");
+ s+=T(px(r.zc),py(r.SR)+14,"Ø"+W(r.mean),"#2e7d32");
+ s+=T(20,214,"← chuck","#555","start");
+ $("svg").innerHTML=s;}
+function calc(){$("err").textContent="";
+ try{const r=solve({OD:$("OD").value,D:$("D").value,up:$("up").value,lo:$("lo").value,w:$("w").value,L:$("lf").value,zc:$("zc").value});
+  $("res").innerHTML="<div style=\"font-size:1.2em;font-weight:bold;font-family:system-ui;margin-bottom:8px\">"+W(r.c)+" x 45°</div><pre>Front\n"+r.front+"\n\nBack\n"+r.back+"</pre><p style=\"font-family:system-ui;font-size:.85em;margin:8px 0 0\">Meets sphere at Ø"+W(r.meetDia)+", Z"+W(r.zMeetF)+" and Z"+W(r.zMeetB)+".</p><p style=\"font-family:system-ui;font-size:.85em;margin:6px 0 0\">Cut this chamfer on the turned Ø"+W(r.OD)+" now, so a "+W(r.L)+" chamfer is left after the sphere is cut.</p>";draw(r)}
+ catch(e){$("err").textContent=e;$("res").innerHTML="";draw(null)}}
+$("go").onclick=calc;
+$("clr").onclick=()=>{["OD","D","up","lo","w","lf","zc"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
+$("OD").value=171;$("D").value=169.91;$("up").value=0;$("lo").value=0.04;$("w").value=46;$("lf").value=0.5;$("zc").value=-30;calc();}
+</script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script></body></html>

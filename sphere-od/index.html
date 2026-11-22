@@ -22,6 +22,7 @@ svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#ff
 <button type="button" id="go">Calculate</button> <button type="button" id="clr">Clear</button>
 <div id="err"></div><div id="res"></div>
 <svg id="svg" viewBox="0 0 320 220" aria-label="OD spherical crown"></svg>
+<p style="font-size:.85em;margin-top:16px"><a href="../sphere-chamfer/" style="color:#1565c0">Sphere pre-chamfer</a></p>
 <script>
 const W=v=>{const s=(+v.toFixed(3)).toString();return s.includes(".")?s:s+"."};
 function num(v){if(v==null||v==="")return NaN;if(typeof v==="number")return v;const n=Number(String(v).trim().replace(/[−–—]/g,"-"));return n}
