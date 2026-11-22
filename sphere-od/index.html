@@ -6,7 +6,7 @@ button{background:#1565c0;color:#fff;border:0;margin-top:10px;width:48%}#clr{bac
 #err{color:#c62828;font-weight:bold;min-height:1.2em}
 #res{background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-family:monospace}
 pre{font-size:1.15em;background:#eef;padding:6px;border-radius:6px;margin:0}
-svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}</style>
+svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}#copy{margin-top:0;width:auto;padding:8px 14px;font-size:.95em}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1565c0"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
 <header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1>Adam's OD Spherical Radius</h1><div style="font-size:.8em;color:#555">Leicester, England</div></div></header>
 <div class="g">
@@ -54,6 +54,7 @@ function solve(i){
 if(typeof module!=="undefined")module.exports={solve,W};
 else{
 const $=id=>document.getElementById(id);
+function copyText(t,b){const done=()=>{b.textContent="Copied";setTimeout(()=>b.textContent="Copy",1200)};const fb=()=>{const a=document.createElement("textarea");a.value=t;a.readOnly=true;a.style.position="fixed";a.style.left="-9999px";document.body.appendChild(a);a.select();try{document.execCommand("copy")}finally{document.body.removeChild(a)}done()};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(fb);else fb()}
 function draw(r){if(!r){$("svg").innerHTML="";return}
  const x0=300,x1=20,z0=Math.max(0,r.zs)+Math.max(r.bl,2),z1=Math.min(-r.L,r.ze)-Math.max(r.bl,2);
  const sc=(x0-x1)/Math.max(z0-z1,1e-9),px=z=>x0-(z0-z)*sc;
@@ -76,7 +77,7 @@ function draw(r){if(!r){$("svg").innerHTML="";return}
  $("svg").innerHTML=s;}
 function calc(){$("err").textContent="";
  try{const r=solve({D:$("D").value,up:$("up").value,lo:$("lo").value,L:$("L").value,sp:$("sp").value,w:$("w").value,bl:$("bl").value,zc:$("zc").value});
-  $("res").innerHTML="<pre>"+r.prog+"</pre>";draw(r)}
+  $("res").innerHTML="<pre id=\"prog\">"+r.prog+"</pre><button type=\"button\" id=\"copy\">Copy</button>";$("copy").onclick=()=>copyText(r.prog,$("copy"));draw(r)}
  catch(e){$("err").textContent=e;$("res").innerHTML="";draw(null)}}
 $("go").onclick=calc;
 $("clr").onclick=()=>{["D","up","lo","L","sp","w","bl","zc"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};

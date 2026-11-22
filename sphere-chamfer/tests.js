@@ -32,6 +32,6 @@ const html=fs.readFileSync(__dirname+"/index.html","utf8");
 assert(html.includes('id="lf"')&&html.includes('step="0.1"')&&html.includes('min="0"'));
 assert(html.includes("Chamfer left (on step face)"));
 assert(html.includes("170.19"));
-assert(fs.readFileSync(__dirname+"/sw.js","utf8").includes("sphchamf-v2"));
+assert(fs.readFileSync(__dirname+"/sw.js","utf8").includes("sphchamf-v3"));
 assert(fs.readFileSync(__dirname+"/sw.js","utf8").includes("startsWith('sphchamf-')"));
 console.log("all tests passed\n"+W(r.c)+" x 45°\n"+r.front+"\n"+r.back+"\nDe "+W(r.De)+"  along Z "+W(r.t)+"\n--- L=1 ---\n"+W(r1.c)+" x 45°\n"+r1.front+"\n"+r1.back);

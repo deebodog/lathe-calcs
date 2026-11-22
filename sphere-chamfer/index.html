@@ -6,7 +6,7 @@ button{background:#1565c0;color:#fff;border:0;margin-top:10px;width:48%}#clr{bac
 #err{color:#c62828;font-weight:bold;min-height:1.2em}
 #res{background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-family:monospace}
 pre{font-size:1.15em;background:#eef;padding:6px;border-radius:6px;margin:0}
-svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}</style>
+svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}#copy{margin-top:0;width:auto;padding:8px 14px;font-size:.95em}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1565c0"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
 <header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1>Adam's Sphere Pre-chamfer</h1><div style="font-size:.8em;color:#555">Leicester, England</div></div></header>
 <div class="g">
@@ -57,6 +57,7 @@ function solve(i){
 if(typeof module!=="undefined")module.exports={solve,W};
 else{
 const $=id=>document.getElementById(id);
+function copyText(t,b){const done=()=>{b.textContent="Copied";setTimeout(()=>b.textContent="Copy",1200)};const fb=()=>{const a=document.createElement("textarea");a.value=t;a.readOnly=true;a.style.position="fixed";a.style.left="-9999px";document.body.appendChild(a);a.select();try{document.execCommand("copy")}finally{document.body.removeChild(a)}done()};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(fb);else fb()}
 function draw(r){if(!r){$("svg").innerHTML="";return}
  const padZ=Math.max(r.c,4),z0=r.zf+padZ,z1=r.zb-padZ,x0=300,x1=20,sc=(x0-x1)/Math.max(z0-z1,1e-9),px=z=>x0-(z0-z)*sc;
  const rLo=r.Xin/2,rHi=Math.max(r.Ro,r.SR),pad=Math.max((rHi-rLo)*0.35,2),rMin=rLo-pad,rMax=rHi+pad*0.35;
@@ -86,7 +87,7 @@ function draw(r){if(!r){$("svg").innerHTML="";return}
  $("svg").innerHTML=s;}
 function calc(){$("err").textContent="";
  try{const r=solve({OD:$("OD").value,D:$("D").value,up:$("up").value,lo:$("lo").value,w:$("w").value,L:$("lf").value,zc:$("zc").value});
-  $("res").innerHTML="<div style=\"font-size:1.2em;font-weight:bold;font-family:system-ui;margin-bottom:8px\">"+W(r.c)+" x 45°</div><pre>Front\n"+r.front+"\n\nBack\n"+r.back+"</pre><p style=\"font-family:system-ui;font-size:.85em;margin:8px 0 0\">Meets sphere at Ø"+W(r.meetDia)+", Z"+W(r.zMeetF)+" and Z"+W(r.zMeetB)+" ("+W(r.t)+" along Z).</p><p style=\"font-family:system-ui;font-size:.85em;margin:6px 0 0\">Cut this chamfer on the turned Ø"+W(r.OD)+" now, so a "+W(r.L)+" chamfer is left on the step face after the sphere is cut.</p>";draw(r)}
+  $("res").innerHTML="<div style=\"font-size:1.2em;font-weight:bold;font-family:system-ui;margin-bottom:8px\">"+W(r.c)+" x 45°</div><pre id=\"prog\">Front\n"+r.front+"\n\nBack\n"+r.back+"</pre><button type=\"button\" id=\"copy\">Copy</button><p style=\"font-family:system-ui;font-size:.85em;margin:8px 0 0\">Meets sphere at Ø"+W(r.meetDia)+", Z"+W(r.zMeetF)+" and Z"+W(r.zMeetB)+" ("+W(r.t)+" along Z).</p><p style=\"font-family:system-ui;font-size:.85em;margin:6px 0 0\">Cut this chamfer on the turned Ø"+W(r.OD)+" now, so a "+W(r.L)+" chamfer is left on the step face after the sphere is cut.</p>";$("copy").onclick=()=>copyText(r.prog,$("copy"));draw(r)}
  catch(e){$("err").textContent=e;$("res").innerHTML="";draw(null)}}
 $("go").onclick=calc;
 $("clr").onclick=()=>{["OD","D","up","lo","w","lf","zc"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
