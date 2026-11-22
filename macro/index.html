@@ -7,22 +7,18 @@ pre{font-size:1.15em;background:#eef;padding:6px;border-radius:6px;margin:0;over
 .n{font-size:.9em;margin:18px 0 0}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1565c0"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
 <header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1>Adam's Macro B Templates</h1><div style="font-size:.8em;color:#555">Leicester, England</div></div></header>
-<p class="n">FL204T sizes. The main sets the arguments and calls the sub.</p>
+<p class="n">The main sets the arguments and calls the sub.</p>
 <div class="res"><pre id="p1">%
 O8001 (PART FAMILY CALLER)
-(Z0 = FRONT FACE - X IS DIAMETER)
-G18 G21 G40 G80 G99 G97
+(HAAS)
+G0 G40 G80 G99
 G28 U0.
-G28 W0.
+G53 Z-420.
 G50 S1800
 G0 T0101
 G96 S200 M3
 Z50.
-(FL204T SIZES - H1 FACES TO Z0)
-G65 P8000 A1. B118. C15. D44.24 E59. F11. H1. I2. J2. K4.8 M26.75 Q2. R23.5 T.4 U.2 V.3 W25.5 X36. Y1. Z15.
-G0 Z50.
-G28 U0. M9
-G28 W0. M5
+G65 P8000 B118. H1. Q2. X36.
 M30
 %</pre><button type="button" class="copy" data-src="p1">Copy</button></div>
 <p class="n">Letters on the G65 go into local # variables as shown.</p>
@@ -32,102 +28,74 @@ M30
 (Q#17 R#18 S#19 T#20)
 (U#21 V#22 W#23)
 (X#24 Y#25 Z#26)
-G65 P8000 A1. B118. C15. D44.24 E59. F11. H1. I2. J2. K4.8 M26.75 Q2. R23.5 T.4 U.2 V.3 W25.5 X36. Y1. Z15.</pre><button type="button" class="copy" data-src="p2">Copy</button></div>
+(B#2  CLEAR DIA OVER DIAMOND POINTS - 118.)
+(T#20 T10 NOSE RAD - .4)
+(X#24 FLAME CUT HOLE DIA - 36.)
+G65 P8000 B118. H1. Q2. X36.</pre><button type="button" class="copy" data-src="p2">Copy</button></div>
 <p class="n">Alarms if a size is missing or out of range, then faces to Z0.</p>
 <div class="res"><pre id="p3">%
 O8000 (PART FAMILY SUB)
-(CALLED BY O8001 - SAME LETTERS AS FL204T)
-(A#1  BORE CHAMFER ON RADIUS)
-(B#2  CLEAR DIA OVER STOCK)
-(C#3  SPHERE CENTRE FROM BACK)
-(D#7  BORE DIA)
-(E#8  SPIGOT DIA)
-(F#9  FLANGE THICKNESS)
-(I#4  SPIGOT FRONT RAD)
-(J#5  SPIGOT BACK FILLET RAD)
-(K#6  SOFT JAW DEPTH IN BORE)
-(M#13 LENGTH AFTER OP1)
-(Q#17 STOCK ON EACH OP1 FACE)
-(R#18 SPHERE RAD)
-(T#20 FINISH NOSE RAD)
-(U#21 SPHERE FINISH STOCK ON DIA)
-(V#22 X WEAR STAND OFF)
-(W#23 FINISHED LENGTH)
-(X#24 START HOLE DIA)
-(Y#25 SPHERE UNDERSIZE ON DIA)
-(Z#26 OP1 SIDE A BORE DEPTH)
-(S#19 START FROM TOOL NO - OPTIONAL)
+(HAAS)
+(CALLED BY O8001)
+(B#2  CLEAR DIA OVER DIAMOND POINTS - 118.)
+(Q#17 STOCK ON EACH OP1 FACE - 2.)
+(X#24 FLAME CUT HOLE DIA - 36.)
 (H#11 OP SELECT)
+(S#19 START FROM TOOL NO - OPTIONAL)
 (--- CHECK ARGUMENTS ---)
-IF[#1EQ#0]GOTO901
 IF[#2EQ#0]GOTO901
-IF[#3EQ#0]GOTO901
-IF[#4EQ#0]GOTO901
-IF[#5EQ#0]GOTO901
-IF[#6EQ#0]GOTO901
-IF[#7EQ#0]GOTO901
-IF[#8EQ#0]GOTO901
-IF[#9EQ#0]GOTO901
 IF[#11EQ#0]GOTO901
-IF[#13EQ#0]GOTO901
 IF[#17EQ#0]GOTO901
-IF[#18EQ#0]GOTO901
-IF[#20EQ#0]GOTO901
-IF[#21EQ#0]GOTO901
-IF[#22EQ#0]GOTO901
-IF[#23EQ#0]GOTO901
 IF[#24EQ#0]GOTO901
-IF[#25EQ#0]GOTO901
-IF[#26EQ#0]GOTO901
 IF[#11NE1.]GOTO902
-IF[#7LE0.]GOTO903
-IF[#8LE#7]GOTO903
+IF[#2LE0.]GOTO903
 IF[#17LE0.]GOTO903
-IF[[#18*2.]GE[#8-2.]]GOTO904
+IF[#24LE0.]GOTO903
+IF[#2LE#24]GOTO903
 (S DEFAULTS TO 1 IF LEFT OUT)
 IF[#19NE#0]GOTO50
 #19=1.
 N50
 IF[#19GT1.]GOTO910
-G18 G21 G40 G80 G99 G97
+G0 G40 G80 G99
 G28 U0.
-G28 W0.
+G53 Z-420.
 G50 S1800
 G0 T0101
 G96 S200 M3
 Z50.
 G0 X#2
 G0 Z[#17+.5] M8
-G72 P1100 Q1200 U0. W.2 D1. F.22
-N1100 G0 Z0.
-N1200 G1 X[#24-4.] F.15
-G70 P1100 Q1200
+G72 P110 Q120 U0. W.2 D1. F.22
+N110 G0 Z0.
+N120 G1 X[#24-4.] F.15
+G70 P110 Q120
 G0 U2.
 G0 Z50.
 G28 U0. M9
-G28 W0. M5
+G53 Z-420.
 M99
 N901 #3000=1(ARGUMENT MISSING)
 N902 #3000=2(THIS EXAMPLE ONLY HAS OP H1)
 N903 #3000=3(DIA OR STOCK OUT OF RANGE)
-N904 #3000=4(SPHERE TOO BIG FOR SPIGOT)
 N910 #3000=10(START TOOL NO TOO HIGH FOR OP)
 %</pre><button type="button" class="copy" data-src="p3">Copy</button></div>
 <p class="n">Example sizes. Loop steps the OD down to the finish diameter.</p>
 <div class="res"><pre id="p4">%
 O8003 (WHILE OD ROUGH STEPS)
+(HAAS)
 (EXAMPLE SIZES - NOT A JOB)
-G18 G21 G40 G80 G99 G97
+G0 G40 G80 G99
 G28 U0.
-G28 W0.
+G53 Z-420.
 G50 S1800
 G0 T0101
 G96 S200 M3
 Z50.
-#1=80.
-#2=50.
-#4=2.
-#26=15.
+#1=80. (START DIA)
+#2=50. (FINISH DIA)
+#4=2. (DOC ON DIA)
+#26=15. (LENGTH)
 IF[#1EQ#0]GOTO901
 IF[#2EQ#0]GOTO901
 IF[#4EQ#0]GOTO901
@@ -140,16 +108,16 @@ WHILE[#100GT#2]DO1
 #100=#100-#4
 IF[#100GE#2]GOTO60
 #100=#2
-N60 G0 X[#100+2.]
+N60 G0 X[#1+4.]
 G0 Z2.
 G1 X#100 F.2
 G1 Z-#26
-G1 X[#100+2.]
+G1 X[#1+4.]
 G0 Z2.
 END1
 G0 Z50.
 G28 U0. M9
-G28 W0. M5
+G53 Z-420.
 M30
 N901 #3000=1(ARGUMENT MISSING)
 N902 #3000=2(DIA OR DOC OUT OF RANGE)
