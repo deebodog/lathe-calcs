@@ -6,7 +6,7 @@ button{background:#1565c0;color:#fff;border:0;margin-top:10px;width:48%}#clr{bac
 #err{color:#c62828;font-weight:bold;min-height:1.2em}
 #res{background:#fff;padding:10px;border-radius:8px;margin-top:8px;font-family:monospace}
 pre{font-size:1.15em;background:#eef;padding:6px;border-radius:6px;margin:0}
-svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}#copy{margin-top:0;width:auto;padding:8px 14px;font-size:.95em}</style>
+svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#fff;border-radius:8px;margin-top:10px}#copy{margin-top:0;width:auto;padding:8px 14px;font-size:.95em}.chk{flex-direction:row;align-items:center;gap:8px;margin-top:10px}#bc{width:auto;padding:0;accent-color:#1565c0}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#1565c0"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
 <header style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><svg width="24" height="12" viewBox="0 0 60 30" style="flex:none;width:24px;height:12px;margin:0;border-radius:0;background:none;border:1px solid #ccc" aria-label="Union Jack"><clipPath id="uks"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="ukt"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath><g clip-path="url(#uks)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0L60,30M60,0L0,30" clip-path="url(#ukt)" stroke="#C8102E" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/><path d="M30,0v30M0,15h60" stroke="#C8102E" stroke-width="6"/></g></svg><div><h1>Adam's Bore + Oil Groove</h1><div style="font-size:.8em;color:#555">Leicester, England</div></div></header>
 <div class="g">
@@ -19,6 +19,7 @@ svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#ff
 <label>Groove radius<input id="R" type="number" inputmode="decimal" step="any"></label>
 <label>Groove depth<input id="d" type="number" inputmode="decimal" step="any"></label>
 </div>
+<label class="chk"><input id="bc" type="checkbox">Back chamfer</label>
 <button type="button" id="go">Calculate</button> <button type="button" id="clr">Clear</button>
 <div id="err"></div><div id="res"></div>
 <svg id="svg" viewBox="0 0 320 220" aria-label="Bore chamfer and oil groove"></svg>
@@ -41,15 +42,15 @@ function solve(i){
  if(!(d>0))throw"Groove depth must be more than 0";
  if(d>R+1e-12)throw"Groove depth must not be more than the radius";
  let zc=num(i.zc);if(!isFinite(zc))throw"Enter the groove centre Z";zc=-Math.abs(zc);
- const half=Math.sqrt(Math.max(0,R*R-(R-d)*(R-d))),zf=zc+half,ze=zc-half,bot=mean+2*d,chX=mean+2*ch,zChF=-ch,zChB=-(L-ch);
- if(zf>zChF+1e-9||ze<zChB-1e-9)throw"The groove overlaps a chamfer or is outside the part";
+ const back=!!i.back;
+ const half=Math.sqrt(Math.max(0,R*R-(R-d)*(R-d))),zf=zc+half,ze=zc-half,bot=mean+2*d,chX=mean+2*ch,zChF=-ch,zChB=-(L-ch),xs=chX+2,xOff=mean-1,zEnd=back?zChB:-L;
+ if(zf>zChF+1e-9||ze<zEnd-1e-9)throw"The groove overlaps a chamfer or is outside the part";
  const cmd="G03";
- let prog="G00 X0.\nG00 Z1.\nG01 X"+W(chX)+" Z0.\n";
- if(ch>1e-12)prog+="G01 X"+W(mean)+" Z"+W(zChF)+"\n";
- prog+="G01 Z"+W(zf)+"\n"+cmd+" X"+W(bot)+" Z"+W(zc)+" R"+W(R)+"\n"+cmd+" X"+W(mean)+" Z"+W(ze)+" R"+W(R)+"\nG01 Z"+W(zChB)+"\n";
- if(ch>1e-12)prog+="G01 X"+W(chX)+" Z"+W(-L)+"\n";
- prog+="G01 X0.";
- return{D,ES,EI,mean,L,ch,R,d,zc,half,zf,ze,bot,chX,zChF,zChB,cmd,prog};
+ let prog="G00 X0.\nG00 Z1.\nG00 G41 X"+W(xs)+"\nG01 X"+W(mean)+" Z"+W(zChF)+"\nG01 Z"+W(zf)+"\n"+cmd+" X"+W(bot)+" Z"+W(zc)+" R"+W(R)+"\n"+cmd+" X"+W(mean)+" Z"+W(ze)+" R"+W(R)+"\n";
+ if(back)prog+="G01 Z"+W(zChB)+"\nG01 X"+W(chX)+" Z"+W(-L)+"\n";
+ else prog+="G01 Z"+W(-L)+"\n";
+ prog+="G01 X"+W(xOff)+"\nG00 G40 Z1.\nG00 Z50.";
+ return{D,ES,EI,mean,L,ch,R,d,zc,half,zf,ze,bot,chX,zChF,zChB,xs,xOff,back,cmd,prog};
 }
 if(typeof module!=="undefined")module.exports={solve,W};
 else{
@@ -63,7 +64,7 @@ function draw(r){if(!r){$("svg").innerHTML="";return}
  const tr=z=>{if(z<r.ze-1e-12||z>r.zf+1e-12)return r.mean/2;const q=Math.sqrt(Math.max(0,r.R*r.R-(z-r.zc)**2));return r.mean/2-(r.R-r.d)+q};
  let wall=`${px(0).toFixed(1)} ${py(r.chX/2).toFixed(1)} L${px(r.zChF).toFixed(1)} ${py(r.mean/2).toFixed(1)} `;
  for(let i=0;i<=40;i++){const z=r.zf+(r.ze-r.zf)*i/40;wall+=`L${px(z).toFixed(1)} ${py(tr(z)).toFixed(1)} `}
- wall+=`L${px(r.zChB).toFixed(1)} ${py(r.mean/2).toFixed(1)} L${px(-r.L).toFixed(1)} ${py(r.chX/2).toFixed(1)}`;
+ wall+=r.back?`L${px(r.zChB).toFixed(1)} ${py(r.mean/2).toFixed(1)} L${px(-r.L).toFixed(1)} ${py(r.chX/2).toFixed(1)}`:`L${px(-r.L).toFixed(1)} ${py(r.mean/2).toFixed(1)}`;
  let s=`<line x1="5" y1="${py(0)}" x2="315" y2="${py(0)}" stroke="#888" stroke-dasharray="8 3"/>`+T(8,py(0)-4,"centreline","#888","start");
  s+=`<path d="M${wall} L${px(-r.L).toFixed(1)} ${top} L${px(0).toFixed(1)} ${top}Z" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>`;
  s+=`<line x1="${px(0)}" y1="10" x2="${px(0)}" y2="${py(0)}" stroke="#c62828" stroke-dasharray="4"/>`+T(px(0),12,"Z0","#c62828","end");
@@ -72,10 +73,10 @@ function draw(r){if(!r){$("svg").innerHTML="";return}
  s+=T(20,214,"← chuck","#555","start");
  $("svg").innerHTML=s;}
 function calc(){$("err").textContent="";
- try{const r=solve({D:$("D").value,up:$("up").value,lo:$("lo").value,L:$("L").value,ch:$("ch").value,R:$("R").value,d:$("d").value,zc:$("zc").value});
+ try{const r=solve({D:$("D").value,up:$("up").value,lo:$("lo").value,L:$("L").value,ch:$("ch").value,R:$("R").value,d:$("d").value,zc:$("zc").value,back:$("bc").checked});
   $("res").innerHTML="<pre id=\"prog\">"+r.prog+"</pre><button type=\"button\" id=\"copy\">Copy</button>";$("copy").onclick=()=>copyText(r.prog,$("copy"));draw(r)}
  catch(e){$("err").textContent=e;$("res").innerHTML="";draw(null)}}
 $("go").onclick=calc;
-$("clr").onclick=()=>{["D","up","lo","L","ch","R","d","zc"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
+$("clr").onclick=()=>{["D","up","lo","L","ch","R","d","zc"].forEach(k=>$(k).value="");$("bc").checked=false;$("err").textContent="";$("res").innerHTML="";draw(null)};$("bc").onchange=()=>{if($("res").innerHTML)calc()};
 $("D").value=120;$("up").value=0.159;$("lo").value=0.072;$("L").value=60;$("ch").value=0.5;$("R").value=1.5;$("d").value=1.5;$("zc").value=-30;calc();}
 </script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script></body></html>
