@@ -41,7 +41,7 @@ function solve(i){
  let zc=num(i.zc);if(!isFinite(zc))throw"Enter the centre Z";zc=-Math.abs(zc);
  const zbS=zc+w/2,zbE=zc-w/2;
  if(zbS>1e-9||zbE<-L-1e-9)throw"The band is outside the part (Z0 to Z-"+W(L)+")";
- const zs=zbS+ch,ze=zbE-ch;
+ const zs=zbS-ch,ze=zbE+ch;
  if(zs>1e-9||ze<-L-1e-9)throw"Start or end Z is outside the part (Z0 to Z-"+W(L)+")";
  const xs=xAt(SR,zc,zs),xe=xAt(SR,zc,ze);
  if(!(xs>sp+1e-12)||!(xe>sp+1e-12))throw"Start or end X is not above the spigot Ø"+W(sp);

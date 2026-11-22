@@ -3,10 +3,10 @@ const m={exports:{}};new Function("module",src)(m);const {solve,W}=m.exports,ass
 const D={D:169.91,up:0,lo:0.04,L:60,sp:145,w:46,ch:0.5,zc:-30};
 const P=o=>solve(o).prog;
 
-assert.equal(P(D),"G01 X163.259 Z-6.5\nG03 X163.259 Z-53.5 R84.945");
+assert.equal(P(D),"G01 X163.822 Z-7.5\nG03 X163.822 Z-52.5 R84.945");
 assert.equal(+solve(D).mean.toFixed(2),169.89);
 assert.equal(solve(D).SR,84.945);
-assert.equal(P({...D,lo:0}),"G01 X163.28 Z-6.5\nG03 X163.28 Z-53.5 R84.955");
+assert.equal(P({...D,lo:0}),"G01 X163.843 Z-7.5\nG03 X163.843 Z-52.5 R84.955");
 assert.equal(P({...D,lo:-0.04,up:0}),P(D));
 assert.equal(P({...D,zc:30}),P(D));
 assert.throws(()=>solve({...D,ch:-0.1}),/0 or more/);
@@ -14,8 +14,8 @@ assert.throws(()=>solve({...D,ch:23}),/half the band/);
 assert.throws(()=>solve({...D,w:70}),/longer than the part/);
 assert.throws(()=>solve({...D,D:0}),/Sphere/);
 assert.equal(P(D).split("\n").length,2);
-assert.equal(W(163.25934000846627),"163.259");
-assert(fs.readFileSync(__dirname+"/sw.js","utf8").includes("od-sphere-v3"));
+assert.equal(W(163.8218913942822),"163.822");
+assert(fs.readFileSync(__dirname+"/sw.js","utf8").includes("od-sphere-v4"));
 assert(fs.readFileSync(__dirname+"/../sphere/sw.js","utf8").includes("sphere-v6"));
 assert(fs.readFileSync(__dirname+"/../sphere/tests.js","utf8").includes('G01 X120.05 Z0.914\\nG03 X120.05 Z-33.914 R62.5'));
 console.log("all tests passed\n"+P(D)+"\n"+P({...D,lo:0}));
