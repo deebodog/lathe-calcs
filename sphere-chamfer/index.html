@@ -16,7 +16,7 @@ svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#ff
 <label>Lower tol −<input id="lo" type="number" inputmode="decimal" step="any"></label>
 <label>Centre Z<input id="zc" type="number" inputmode="decimal" step="any"></label>
 <label>Band width<input id="w" type="number" inputmode="decimal" step="any"></label>
-<label>Chamfer left<input id="lf" type="number" inputmode="decimal" step="0.1" min="0"></label>
+<label>Chamfer left (on step face)<input id="lf" type="number" inputmode="decimal" step="0.1" min="0"></label>
 </div>
 <button type="button" id="go">Calculate</button> <button type="button" id="clr">Clear</button>
 <div id="err"></div><div id="res"></div>
@@ -35,18 +35,24 @@ function solve(i){
  let L=i.L;if(L==null||L===""||(typeof L==="number"&&isNaN(L)))L=0.5;else L=num(L);
  if(!(w>0))throw"Band width must be more than 0";
  if(!isFinite(L)||L<0)throw"Chamfer left must be 0 or more";
- if(L>=w/2-1e-12)throw"Chamfer left must be less than half the band width";
  if(SR<w/2-1e-12)throw"Sphere radius must be at least half the band width";
  let zc=num(i.zc);if(!isFinite(zc))throw"Enter the centre Z";zc=-Math.abs(zc);
  const half=w/2,zf=zc+half,zb=zc-half;
  const De=2*Math.sqrt(Math.max(0,SR*SR-half*half));
  if(OD<=De+1e-12)throw"Turned OD must be more than the sphere Ø at the band edge (Ø"+W(De)+")";
- const dz=half-L,r=Math.sqrt(Math.max(0,SR*SR-dz*dz)),Ro=OD/2,c=Ro+L-r;
+ if(L>=De/2-1e-12)throw"Chamfer left is larger than the sphere Ø at the band edge allows";
+ const Xin=De-2*L,Ro=OD/2,c=Ro-(De/2-L);
  if(c<=1e-12)throw"No chamfer is needed";
- const Xin=OD-2*c,zMeetF=zf-L,zMeetB=zb+L,zFrontEnd=zf-c,zBackStart=zb+c;
+ const a=De/2-L,A=2,B=2*(a-half),C=a*a+half*half-SR*SR,disc=B*B-4*A*C;
+ if(disc<-1e-12)throw"The chamfer does not meet the sphere";
+ const root=Math.sqrt(Math.max(0,disc)),t1=(-B+root)/(2*A),t2=(-B-root)/(2*A);
+ const ts=[t1,t2].filter(t=>isFinite(t)&&t>=-1e-9&&t<half+1e-9);
+ if(!ts.length)throw"The chamfer does not meet the sphere";
+ const t=Math.max(0,Math.min(...ts.map(v=>Math.max(0,v))));
+ const zMeetF=zf-t,zMeetB=zb+t,zFrontEnd=zf-c,zBackStart=zb+c,meetDia=Xin+2*t,r=meetDia/2;
  const front="G01 X"+W(Xin)+" Z"+W(zf)+"\nG01 X"+W(OD)+" Z"+W(zFrontEnd);
  const back="G01 X"+W(OD)+" Z"+W(zBackStart)+"\nG01 X"+W(Xin)+" Z"+W(zb);
- return{OD,D,up,lo,mean,SR,w,L,zc,zf,zb,De,r,c,Ro,Xin,zMeetF,zMeetB,zFrontEnd,zBackStart,meetDia:2*r,front,back,prog:front+"\n"+back};
+ return{OD,D,up,lo,mean,SR,w,L,zc,zf,zb,De,r,c,t,Ro,Xin,zMeetF,zMeetB,zFrontEnd,zBackStart,meetDia,front,back,prog:front+"\n"+back};
 }
 if(typeof module!=="undefined")module.exports={solve,W};
 else{
@@ -65,11 +71,14 @@ function draw(r){if(!r){$("svg").innerHTML="";return}
  s+=`<path d="${arc}" fill="none" stroke="#2e7d32" stroke-width="2.5"/>`;
  s+=`<path d="M${px(r.zf).toFixed(1)} ${py(r.Xin/2).toFixed(1)} L${px(r.zMeetF).toFixed(1)} ${py(r.r).toFixed(1)}" fill="none" stroke="#ef6c00" stroke-width="3"/>`;
  s+=`<path d="M${px(r.zb).toFixed(1)} ${py(r.Xin/2).toFixed(1)} L${px(r.zMeetB).toFixed(1)} ${py(r.r).toFixed(1)}" fill="none" stroke="#ef6c00" stroke-width="3"/>`;
+ s+=`<path d="M${px(r.zf).toFixed(1)} ${py(r.Xin/2).toFixed(1)} L${px(r.zf).toFixed(1)} ${py(r.De/2).toFixed(1)}" fill="none" stroke="#ef6c00" stroke-width="3"/>`;
+ s+=`<path d="M${px(r.zb).toFixed(1)} ${py(r.Xin/2).toFixed(1)} L${px(r.zb).toFixed(1)} ${py(r.De/2).toFixed(1)}" fill="none" stroke="#ef6c00" stroke-width="3"/>`;
  s+=`<circle cx="${px(r.zMeetF)}" cy="${py(r.r)}" r="3.5" fill="#ef6c00"/>`;
  s+=`<circle cx="${px(r.zMeetB)}" cy="${py(r.r)}" r="3.5" fill="#ef6c00"/>`;
  s+=T(px(r.zc),py(r.Ro)-8,"Ø"+W(r.OD),"#0d47a1");
  s+=T(px((r.zf+r.zFrontEnd)/2),py(r.Ro)+16,W(r.c)+" x 45°","#1565c0");
- s+=T(px(r.zMeetF)-4,py(r.r)-10,W(r.L)+" left","#ef6c00");
+ s+=T(px(r.zf)+18,(py(r.Xin/2)+py(r.De/2))/2,W(r.L)+" on face","#ef6c00","start");
+ s+=T(px(r.zMeetF)-4,py(r.r)-10,W(r.t)+" along Z","#ef6c00");
  s+=T(px(r.zf),bot+22,"Z"+W(r.zf),"#555");
  s+=T(px(r.zb),bot+22,"Z"+W(r.zb),"#555");
  s+=T(px(r.zc),py(r.SR)+14,"Ø"+W(r.mean),"#2e7d32");
@@ -77,9 +86,9 @@ function draw(r){if(!r){$("svg").innerHTML="";return}
  $("svg").innerHTML=s;}
 function calc(){$("err").textContent="";
  try{const r=solve({OD:$("OD").value,D:$("D").value,up:$("up").value,lo:$("lo").value,w:$("w").value,L:$("lf").value,zc:$("zc").value});
-  $("res").innerHTML="<div style=\"font-size:1.2em;font-weight:bold;font-family:system-ui;margin-bottom:8px\">"+W(r.c)+" x 45°</div><pre>Front\n"+r.front+"\n\nBack\n"+r.back+"</pre><p style=\"font-family:system-ui;font-size:.85em;margin:8px 0 0\">Meets sphere at Ø"+W(r.meetDia)+", Z"+W(r.zMeetF)+" and Z"+W(r.zMeetB)+".</p><p style=\"font-family:system-ui;font-size:.85em;margin:6px 0 0\">Cut this chamfer on the turned Ø"+W(r.OD)+" now, so a "+W(r.L)+" chamfer is left after the sphere is cut.</p>";draw(r)}
+  $("res").innerHTML="<div style=\"font-size:1.2em;font-weight:bold;font-family:system-ui;margin-bottom:8px\">"+W(r.c)+" x 45°</div><pre>Front\n"+r.front+"\n\nBack\n"+r.back+"</pre><p style=\"font-family:system-ui;font-size:.85em;margin:8px 0 0\">Meets sphere at Ø"+W(r.meetDia)+", Z"+W(r.zMeetF)+" and Z"+W(r.zMeetB)+" ("+W(r.t)+" along Z).</p><p style=\"font-family:system-ui;font-size:.85em;margin:6px 0 0\">Cut this chamfer on the turned Ø"+W(r.OD)+" now, so a "+W(r.L)+" chamfer is left on the step face after the sphere is cut.</p>";draw(r)}
  catch(e){$("err").textContent=e;$("res").innerHTML="";draw(null)}}
 $("go").onclick=calc;
 $("clr").onclick=()=>{["OD","D","up","lo","w","lf","zc"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
-$("OD").value=171;$("D").value=169.91;$("up").value=0;$("lo").value=0.04;$("w").value=46;$("lf").value=0.5;$("zc").value=-30;calc();}
+$("OD").value=170.19;$("D").value=169.91;$("up").value=0;$("lo").value=0.04;$("w").value=46;$("lf").value=0.5;$("zc").value=-30;calc();}
 </script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script></body></html>
