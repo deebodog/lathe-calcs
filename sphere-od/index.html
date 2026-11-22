@@ -17,7 +17,7 @@ svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#ff
 <label>Part width<input id="L" type="number" inputmode="decimal" step="any"></label>
 <label>Spigot Ø<input id="sp" type="number" inputmode="decimal" step="any"></label>
 <label>Band width<input id="w" type="number" inputmode="decimal" step="any"></label>
-<label>Edge chamfer<input id="ch" type="number" inputmode="decimal" step="any"></label>
+<label>Start below edge<input id="bl" type="number" inputmode="decimal" step="0.1" min="0"></label>
 </div>
 <button type="button" id="go">Calculate</button> <button type="button" id="clr">Clear</button>
 <div id="err"></div><div id="res"></div>
@@ -25,36 +25,38 @@ svg{width:100%;max-width:100%;display:block;box-sizing:border-box;background:#ff
 <script>
 const W=v=>{const s=(+v.toFixed(3)).toString();return s.includes(".")?s:s+"."};
 function num(v){if(v==null||v==="")return NaN;if(typeof v==="number")return v;const n=Number(String(v).trim().replace(/[−–—]/g,"-"));return n}
-function xAt(SR,zc,z){const h=SR*SR-(z-zc)*(z-zc);if(h<-1e-12)throw"Z"+W(z)+" is outside the sphere";return 2*Math.sqrt(Math.max(0,h))}
 function solve(i){
  const D=num(i.D),up=Math.abs(num(i.up)||0),lo=Math.abs(num(i.lo)||0);
  if(!(D>0))throw"Sphere Ø must be more than 0";
  const mean=D+(up-lo)/2,SR=mean/2;
  if(!(mean>0))throw"Mean sphere Ø must be more than 0";
- const L=num(i.L),sp=num(i.sp),w=num(i.w),ch=num(i.ch);
+ const L=num(i.L),sp=num(i.sp),w=num(i.w);
+ let bl=i.bl;if(bl==null||bl===""||(typeof bl==="number"&&isNaN(bl)))bl=0.5;else bl=num(bl);
  if(!(L>0))throw"Part width must be more than 0";
  if(!(sp>0))throw"Spigot Ø must be more than 0";
  if(!(w>0))throw"Band width must be more than 0";
- if(!isFinite(ch)||ch<0)throw"Edge chamfer must be 0 or more";
- if(ch>=w/2-1e-12)throw"Edge chamfer must be less than half the band width";
+ if(!isFinite(bl)||bl<0)throw"Start below edge must be 0 or more";
  if(w>L+1e-12)throw"Band width must not be longer than the part";
+ if(SR<w/2-1e-12)throw"Sphere radius must be at least half the band width";
  let zc=num(i.zc);if(!isFinite(zc))throw"Enter the centre Z";zc=-Math.abs(zc);
- const zbS=zc+w/2,zbE=zc-w/2;
+ const half=w/2,zbS=zc+half,zbE=zc-half;
  if(zbS>1e-9||zbE<-L-1e-9)throw"The band is outside the part (Z0 to Z-"+W(L)+")";
- const zs=zbS-ch,ze=zbE+ch;
- if(zs>1e-9||ze<-L-1e-9)throw"Start or end Z is outside the part (Z0 to Z-"+W(L)+")";
- const xs=xAt(SR,zc,zs),xe=xAt(SR,zc,ze);
- if(!(xs>sp+1e-12)||!(xe>sp+1e-12))throw"Start or end X is not above the spigot Ø"+W(sp);
- const prog="G01 X"+W(xs)+" Z"+W(zs)+"\nG03 X"+W(xe)+" Z"+W(ze)+" R"+W(SR);
- return{D,up,lo,mean,SR,L,sp,w,ch,zc,zbS,zbE,zs,ze,xs,xe,prog};
+ const De=2*Math.sqrt(Math.max(0,SR*SR-half*half)),X=De-2*bl;
+ if(!(X>0)||X/2>SR+1e-12)throw"Start below is larger than the sphere allows";
+ if(X<=sp+1e-12)throw"Start X"+W(X)+" would hit the spigot Ø"+W(sp);
+ const dz=Math.sqrt(Math.max(0,SR*SR-(X/2)*(X/2))),zs=zc+dz,ze=zc-dz;
+ if(zs>1e-9||zs<-L-1e-9)throw"Start Z"+W(zs)+" is outside the part (Z0 to Z-"+W(L)+")";
+ if(ze>1e-9||ze<-L-1e-9)throw"End Z"+W(ze)+" is outside the part (Z0 to Z-"+W(L)+")";
+ const prog="G01 X"+W(X)+" Z"+W(zs)+"\nG03 X"+W(X)+" Z"+W(ze)+" R"+W(SR);
+ return{D,up,lo,mean,SR,L,sp,w,bl,zc,zbS,zbE,De,xs:X,xe:X,zs,ze,dz,prog};
 }
 if(typeof module!=="undefined")module.exports={solve,W};
 else{
 const $=id=>document.getElementById(id);
 function draw(r){if(!r){$("svg").innerHTML="";return}
- const x0=300,x1=20,z0=Math.max(0,r.zs)+Math.max(r.ch,2),z1=Math.min(-r.L,r.ze)-Math.max(r.ch,2);
+ const x0=300,x1=20,z0=Math.max(0,r.zs)+Math.max(r.bl,2),z1=Math.min(-r.L,r.ze)-Math.max(r.bl,2);
  const sc=(x0-x1)/Math.max(z0-z1,1e-9),px=z=>x0-(z0-z)*sc;
- const rHi=r.SR,rLo=Math.min(r.xs,r.xe,r.sp)/2;
+ const rHi=r.SR,rLo=Math.min(r.xs,r.xe,r.sp,r.De)/2;
  const pad=Math.max((rHi-rLo)*0.25,2),rMin=rLo-pad,rMax=rHi+pad*0.35;
  const top=22,bot=175,ys=(bot-top)/Math.max(rMax-rMin,1e-9),py=rad=>bot-(rad-rMin)*ys;
  const T=(x,y,t,c,a)=>`<text x="${x}" y="${y}" font-size="11" fill="${c||"#000"}" text-anchor="${a||"middle"}">${t}</text>`;
@@ -63,7 +65,7 @@ function draw(r){if(!r){$("svg").innerHTML="";return}
  for(let i=0;i<=80;i++){const z=r.zbS+(r.zbE-r.zbS)*i/80;crown+=(i?"L":"")+px(z).toFixed(1)+" "+py(tr(z)).toFixed(1)+" "}
  let cut="M"+px(r.zs).toFixed(1)+" "+py(r.xs/2).toFixed(1)+" ";
  for(let i=1;i<=80;i++){const z=r.zs+(r.ze-r.zs)*i/80;cut+="L"+px(z).toFixed(1)+" "+py(tr(z)).toFixed(1)+" "}
- let s=`<path d="M${px(0).toFixed(1)} ${py(r.sp/2).toFixed(1)} L${px(r.zbS).toFixed(1)} ${py(r.sp/2).toFixed(1)} L${px(r.zbS).toFixed(1)} ${py(tr(r.zbS)).toFixed(1)} L${crown}L${px(r.zbE).toFixed(1)} ${py(r.sp/2).toFixed(1)} L${px(-r.L).toFixed(1)} ${py(r.sp/2).toFixed(1)} L${px(-r.L).toFixed(1)} ${bot+8} L${px(0).toFixed(1)} ${bot+8}Z" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>`;
+ let s=`<path d="M${px(0).toFixed(1)} ${py(r.sp/2).toFixed(1)} L${px(r.zbS).toFixed(1)} ${py(r.sp/2).toFixed(1)} L${px(r.zbS).toFixed(1)} ${py(r.De/2).toFixed(1)} L${crown}L${px(r.zbE).toFixed(1)} ${py(r.De/2).toFixed(1)} L${px(r.zbE).toFixed(1)} ${py(r.sp/2).toFixed(1)} L${px(-r.L).toFixed(1)} ${py(r.sp/2).toFixed(1)} L${px(-r.L).toFixed(1)} ${bot+8} L${px(0).toFixed(1)} ${bot+8}Z" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>`;
  s+=`<path d="${cut}" fill="none" stroke="#2e7d32" stroke-width="2.5"/>`;
  s+=`<circle cx="${px(r.zs)}" cy="${py(r.xs/2)}" r="4" fill="#2e7d32"/>`+T(px(r.zs),py(r.xs/2)+16,"Z"+W(r.zs),"#2e7d32");
  s+=`<circle cx="${px(r.ze)}" cy="${py(r.xe/2)}" r="4" fill="#2e7d32"/>`+T(px(r.ze),py(r.xe/2)+16,"Z"+W(r.ze),"#2e7d32");
@@ -72,10 +74,10 @@ function draw(r){if(!r){$("svg").innerHTML="";return}
  s+=T(20,214,"← chuck","#555","start");
  $("svg").innerHTML=s;}
 function calc(){$("err").textContent="";
- try{const r=solve({D:$("D").value,up:$("up").value,lo:$("lo").value,L:$("L").value,sp:$("sp").value,w:$("w").value,ch:$("ch").value,zc:$("zc").value});
+ try{const r=solve({D:$("D").value,up:$("up").value,lo:$("lo").value,L:$("L").value,sp:$("sp").value,w:$("w").value,bl:$("bl").value,zc:$("zc").value});
   $("res").innerHTML="<pre>"+r.prog+"</pre>";draw(r)}
  catch(e){$("err").textContent=e;$("res").innerHTML="";draw(null)}}
 $("go").onclick=calc;
-$("clr").onclick=()=>{["D","up","lo","L","sp","w","ch","zc"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
-$("D").value=169.91;$("up").value=0;$("lo").value=0.04;$("L").value=60;$("sp").value=145;$("w").value=46;$("ch").value=0.5;$("zc").value=-30;calc();}
+$("clr").onclick=()=>{["D","up","lo","L","sp","w","bl","zc"].forEach(k=>$(k).value="");$("err").textContent="";$("res").innerHTML="";draw(null)};
+$("D").value=169.91;$("up").value=0;$("lo").value=0.04;$("L").value=60;$("sp").value=145;$("w").value=46;$("bl").value=0.5;$("zc").value=-30;calc();}
 </script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script></body></html>
